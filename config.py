@@ -153,4 +153,4 @@ WATCHDOG_ENABLED = False
 WATCHDOG_TIMEOUT = 8000
 
 # ============== Debug Settings ==============
-SENSOR_DEBUG_MODE = True      # Enable detailed sensor debugging
+SENSOR_DEBUG_MODE = False      # Enable detailed sensor debugging
