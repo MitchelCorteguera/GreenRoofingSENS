@@ -40,10 +40,15 @@ VERSION = "3.0"
 SOFTWARE_DATE = "2025-01-01"
 
 # ============== I2C Configuration ==============
-# I2C Bus 0 - Rainfall sensor and MLX90614
+# I2C Bus 0 - Rainfall sensor + MLX90614 #1
 I2C_SCL_PIN = 1
 I2C_SDA_PIN = 0
 I2C_FREQUENCY = 100000
+
+# I2C Bus 1 - MLX90614 #2 (solo)
+I2C1_SCL_PIN = 3
+I2C1_SDA_PIN = 2
+I2C1_FREQUENCY = 100000
 
 # ============== Sensor Enable Flags ==============
 ENABLE_RAINFALL = True        # DFRobot rainfall sensor
@@ -67,7 +72,9 @@ DS18B20_PIN_3 = 18            # OneWire data pin for sensor 3
 DS18B20_CONVERSION_DELAY = 750  # ms to wait for temperature conversion
 
 # ============== Soil Moisture Sensor Settings ==============
-SOIL_MOISTURE_PIN = 26        # ADC pin (ADC0 = GP26)
+SOIL_MOISTURE_PIN = 26        # ADC pin (ADC0 = GP26) - Sensor 1
+SOIL_MOISTURE_PIN_2 = 27      # ADC pin (ADC1 = GP27) - Sensor 2
+SOIL_MOISTURE_PIN_3 = 28      # ADC pin (ADC2 = GP28) - Sensor 3
 # Calibration values - adjust based on your sensor!
 # Measure raw value when dry and when in water, then set these:
 SOIL_MOISTURE_DRY = 65535     # ADC value when completely dry (air)
@@ -114,7 +121,7 @@ STORAGE_WARNING_THRESHOLD = 80
 STORAGE_CRITICAL_THRESHOLD = 90
 
 # ============== Logging Settings ==============
-LOG_INTERVAL = 15 * 60        # 15 minutes between logs
+LOG_INTERVAL = 30             # 30 seconds between logs
 LOG_DIRECTORY = '/logs'
 SENSOR_LOG_FILE = 'sensor_log.txt'
 NETWORK_LOG_FILE = 'network.log'
@@ -122,7 +129,7 @@ ERROR_LOG_FILE = 'error.log'
 MAX_LOG_SIZE = 1024 * 50      # 50KB max log size
 MAX_LOG_FILES = 3
 
-CHART_HISTORY_POINTS = 50     # Data points to show on charts
+CHART_HISTORY_POINTS = 24     # Reduced for memory conservation
 
 # ============== Time Settings ==============
 NTP_SERVER = 'time.google.com'
@@ -144,3 +151,6 @@ SLEEP_DURATION = 1000
 
 WATCHDOG_ENABLED = False
 WATCHDOG_TIMEOUT = 8000
+
+# ============== Debug Settings ==============
+SENSOR_DEBUG_MODE = True      # Enable detailed sensor debugging

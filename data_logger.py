@@ -33,7 +33,7 @@ class DataLogger:
                 os.stat(self.log_filename)
             except OSError:
                 with open(self.log_filename, 'w') as f:
-                    f.write("DateTime,SoilTemp_C,SoilTemp1_C,SoilTemp2_C,SoilTemp3_C,SoilMoisture,IR_Temp_C,Rainfall_mm,Rainfall_hr\n")
+                    f.write("DateTime,SoilTemp_C,SoilTemp1_C,SoilTemp2_C,SoilTemp3_C,SoilMoisture1,SoilMoisture2,SoilMoisture3,IR_Temp1_C,IR_Temp2_C,Rainfall_mm,Rainfall_hr\n")
                 self.logger.log("LOGGER", f"Created log: {self.log_filename}", "INFO")
         except Exception as e:
             self.logger.log("LOGGER", f"Log file error: {e}", "ERROR")
@@ -116,8 +116,9 @@ class DataLogger:
             self.logger.log("LOGGER", f"Load history error: {e}", "ERROR")
     
     def log_data(self, soil_temp_c, soil_moisture, ir_temp_c, rainfall_mm, rainfall_hourly, 
-                 soil_temp_1_c=None, soil_temp_2_c=None, soil_temp_3_c=None):
-        """Log sensor data including individual soil temperature sensors"""
+                 soil_temp_1_c=None, soil_temp_2_c=None, soil_temp_3_c=None,
+                 soil_moisture_2=None, soil_moisture_3=None, ir_temp_2_c=None):
+        """Log sensor data including all sensors"""
         current_time = time.time()
         
         if current_time - self.last_log_time < self.log_interval:
@@ -129,13 +130,13 @@ class DataLogger:
             self._rotate_logs()
             timestamp = format_datetime(time.localtime())
             
-            # Use average for individual sensors if not provided (backward compatibility)
-            if soil_temp_1_c is None:
-                soil_temp_1_c = soil_temp_c
-            if soil_temp_2_c is None:
-                soil_temp_2_c = soil_temp_c
-            if soil_temp_3_c is None:
-                soil_temp_3_c = soil_temp_c
+            # Use defaults for missing sensors (backward compatibility)
+            if soil_temp_1_c is None: soil_temp_1_c = soil_temp_c
+            if soil_temp_2_c is None: soil_temp_2_c = soil_temp_c
+            if soil_temp_3_c is None: soil_temp_3_c = soil_temp_c
+            if soil_moisture_2 is None: soil_moisture_2 = soil_moisture
+            if soil_moisture_3 is None: soil_moisture_3 = soil_moisture
+            if ir_temp_2_c is None: ir_temp_2_c = ir_temp_c
             
             data = {
                 'timestamp': timestamp,
@@ -144,14 +145,17 @@ class DataLogger:
                 'soil_temp_2_c': round(float(soil_temp_2_c or 0), 1),
                 'soil_temp_3_c': round(float(soil_temp_3_c or 0), 1),
                 'soil_moisture': round(float(soil_moisture or 0), 1),
+                'soil_moisture_2': round(float(soil_moisture_2 or 0), 1),
+                'soil_moisture_3': round(float(soil_moisture_3 or 0), 1),
                 'ir_temp_c': round(float(ir_temp_c or 0), 1),
+                'ir_temp_2_c': round(float(ir_temp_2_c or 0), 1),
                 'rainfall_mm': round(float(rainfall_mm or 0), 2),
                 'rainfall_hourly': round(float(rainfall_hourly or 0), 2),
             }
             
             self.data_history.append(data)
             
-            line = f"{timestamp},{data['soil_temp_c']},{data['soil_temp_1_c']},{data['soil_temp_2_c']},{data['soil_temp_3_c']},{data['soil_moisture']},{data['ir_temp_c']},{data['rainfall_mm']},{data['rainfall_hourly']}\n"
+            line = f"{timestamp},{data['soil_temp_c']},{data['soil_temp_1_c']},{data['soil_temp_2_c']},{data['soil_temp_3_c']},{data['soil_moisture']},{data['soil_moisture_2']},{data['soil_moisture_3']},{data['ir_temp_c']},{data['ir_temp_2_c']},{data['rainfall_mm']},{data['rainfall_hourly']}\n"
             with open(self.log_filename, 'a') as f:
                 f.write(line)
             

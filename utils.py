@@ -122,16 +122,14 @@ def validate_sensor_reading(value, sensor_type):
     """Validate a sensor reading based on config ranges."""
     try:
         value = float(value)
-        if sensor_type == 'temperature':
-            return config.VALID_TEMP_RANGE[0] <= value <= config.VALID_TEMP_RANGE[1]
-        elif sensor_type == 'co2':
-            return config.VALID_CO2_RANGE[0] <= value <= config.VALID_CO2_RANGE[1]
-        elif sensor_type == 'humidity':
-            return config.VALID_HUMIDITY_RANGE[0] <= value <= config.VALID_HUMIDITY_RANGE[1]
-        elif sensor_type == 'pressure':
-            return config.VALID_PRESSURE_RANGE[0] <= value <= config.VALID_PRESSURE_RANGE[1]
-        elif sensor_type == 'light':
-            return config.VALID_LIGHT_RANGE[0] <= value <= config.VALID_LIGHT_RANGE[1]
+        if sensor_type == 'soil_moisture':
+            return config.VALID_SOIL_MOISTURE_RANGE[0] <= value <= config.VALID_SOIL_MOISTURE_RANGE[1]
+        elif sensor_type == 'soil_temp':
+            return config.VALID_SOIL_TEMP_RANGE[0] <= value <= config.VALID_SOIL_TEMP_RANGE[1]
+        elif sensor_type == 'rainfall':
+            return config.VALID_RAINFALL_RANGE[0] <= value <= config.VALID_RAINFALL_RANGE[1]
+        elif sensor_type == 'ir_temp':
+            return config.VALID_IR_TEMP_RANGE[0] <= value <= config.VALID_IR_TEMP_RANGE[1]
         return False
     except Exception:
         return False
@@ -446,3 +444,23 @@ class ExceptionHandler:
                 print(f"[ExceptionHandler] {critical_msg}")
         except Exception as e:
             print(f"[ExceptionHandler] Error while handling exception: {str(e)}")
+        """Ensure the log file exists."""
+        try:
+            with open(self.log_path, 'a') as f:
+                pass
+        except Exception:
+            pass
+
+    def log(self, category, message, level="INFO"):
+        """Log a network event."""
+        try:
+            if self._check_rotation(self.log_path):
+                self._rotate_log(self.log_path)
+            
+            timestamp = format_datetime(time.localtime())
+            log_entry = f"[{timestamp}] [{level}] [{category}] {message}\n"
+            
+            with open(self.log_path, 'a') as f:
+                f.write(log_entry)
+        except Exception as e:
+            print(f"Logging error: {e}")
