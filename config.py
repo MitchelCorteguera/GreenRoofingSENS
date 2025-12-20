@@ -31,7 +31,7 @@ GATEWAY = "192.168.1.1"
 DNS_SERVER = "8.8.8.8"
 
 # ============== Data Upload Settings ==============
-UPLOAD_URL = "https://growingbeyond.earth/log_json.php"
+UPLOAD_URL = "https://your-function-app.azurewebsites.net/api/sensor-data"
 UPLOAD_DEBUG_MODE = True
 UPLOAD_RESPONSE_TIMEOUT = 10
 

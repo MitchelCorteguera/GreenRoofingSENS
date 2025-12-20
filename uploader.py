@@ -1,11 +1,12 @@
-# uploader.py - Upload agricultural sensor data to server
+# uploader.py - Upload agricultural sensor data to Azure Functions
 import urequests
 import json
 import network
+import time
 import config
 
 def upload_data_to_server(sensor_data):
-    """Upload sensor data to server if URL is configured"""
+    """Upload sensor data to Azure Functions if URL is configured"""
     if not config.UPLOAD_URL:
         return False
         
@@ -16,20 +17,30 @@ def upload_data_to_server(sensor_data):
         return False
 
     payload = {
-        "Soil Temperature (C)": round(sensor_data.get('soil_temp_c', 0), 1),
-        "Soil Moisture (%)": round(sensor_data.get('soil_moisture', 0), 1),
-        "IR Temperature (C)": round(sensor_data.get('ir_temp_c', 0), 1),
-        "Rainfall Total (mm)": round(sensor_data.get('rainfall_mm', 0), 2),
-        "Rainfall Hourly (mm)": round(sensor_data.get('rainfall_hourly', 0), 2),
-        "ID": config.DEVICE_ID,
-        "software_date": config.SOFTWARE_DATE,
-        "version": config.VERSION
+        "deviceId": config.DEVICE_ID,
+        "timestamp": time.time(),
+        "version": config.VERSION,
+        "softwareDate": config.SOFTWARE_DATE,
+        "sensors": {
+            "soilTemperature1": round(sensor_data.get('soil_temp_1_c', 0), 1),
+            "soilTemperature2": round(sensor_data.get('soil_temp_2_c', 0), 1),
+            "soilTemperature3": round(sensor_data.get('soil_temp_3_c', 0), 1),
+            "soilMoisture1": round(sensor_data.get('soil_moisture', 0), 1),
+            "soilMoisture2": round(sensor_data.get('soil_moisture_2', 0), 1),
+            "soilMoisture3": round(sensor_data.get('soil_moisture_3', 0), 1),
+            "irTemperature1": round(sensor_data.get('ir_temp_c', 0), 1),
+            "irTemperature2": round(sensor_data.get('ir_object_temp_2_c', 0), 1),
+            "rainfallTotal": round(sensor_data.get('rainfall_mm', 0), 2),
+            "rainfallHourly": round(sensor_data.get('rainfall_hourly', 0), 2)
+        }
     }
 
     try:
-        headers = {'Content-Type': 'application/json'}
+        headers = {
+            'Content-Type': 'application/json',
+            'User-Agent': f'GreenRoofingSENS/{config.VERSION}'
+        }
         
-        # Add a timeout to the request
         response = urequests.post(
             config.UPLOAD_URL, 
             data=json.dumps(payload), 
