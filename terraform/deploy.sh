@@ -1,5 +1,4 @@
 #!/bin/bash
-set -euo pipefail
 
 # Azure CLI deployment script for GreenRoofing sensor infrastructure
 # Mirrors the Terraform configuration
@@ -8,12 +7,14 @@ set -euo pipefail
 : "${LOCATION:=eastus}"
 : "${SUFFIX:=$(openssl rand -hex 4)}"
 : "${RG_NAME:=rg-greenroofing-sensors-${SUFFIX}}"
+: "${PYTHON_VERSION:=3.10}"
 : "${STORAGE_NAME:=stgreenroofing${SUFFIX}}"
 : "${COSMOS_NAME:=cosmos-greenroofing-${SUFFIX}}"
 : "${FUNCTION_NAME:=func-greenroofing-${SUFFIX}}"
 
 echo "Creating infrastructure with suffix: ${SUFFIX}"
 echo "Resource Group: ${RG_NAME}"
+echo "Python version: ${PYTHON_VERSION}"
 
 # Create Resource Group
 az group create --name "$RG_NAME" --location "$LOCATION"
@@ -32,7 +33,7 @@ az functionapp create \
   --consumption-plan-location "$LOCATION" \
   --storage-account "$STORAGE_NAME" \
   --runtime python \
-  --runtime-version 3.9 \
+  --runtime-version "$PYTHON_VERSION" \
   --functions-version 4 \
   --os-type Linux
 
