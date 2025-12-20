@@ -65,7 +65,6 @@ Field-ready, battery/solar-friendly MicroPython firmware for tracking green-roof
 
 ## Roadmap ideas
 - Decide and document maintenance cadence (cleaning debris from tipping bucket, seasonal recalibration).
-- Add `/api/history` endpoint wiring (template already calls it) or point charts directly at `/api/data` history.
 - Optional OTA updates and MQTT/LoRa backhaul for off-grid deployments.
 
 ## License
