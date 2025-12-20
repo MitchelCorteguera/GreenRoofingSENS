@@ -8,27 +8,15 @@ set -euo pipefail
 : "${LOCATION:=eastus}"
 : "${SUFFIX:=$(openssl rand -hex 4)}"
 : "${RG_NAME:=rg-greenroofing-sensors-${SUFFIX}}"
-: "${PLAN_NAME:=asp-greenroofing-${SUFFIX}}"
 : "${STORAGE_NAME:=stgreenroofing${SUFFIX}}"
 : "${COSMOS_NAME:=cosmos-greenroofing-${SUFFIX}}"
 : "${FUNCTION_NAME:=func-greenroofing-${SUFFIX}}"
 
 echo "Creating infrastructure with suffix: ${SUFFIX}"
 echo "Resource Group: ${RG_NAME}"
-echo "Function Plan: ${PLAN_NAME}"
 
 # Create Resource Group
 az group create --name "$RG_NAME" --location "$LOCATION"
-
-# Create Linux Consumption Plan (Y1) if it does not exist
-if ! az functionapp plan show --name "$PLAN_NAME" --resource-group "$RG_NAME" >/dev/null 2>&1; then
-  az functionapp plan create \
-    --name "$PLAN_NAME" \
-    --resource-group "$RG_NAME" \
-    --location "$LOCATION" \
-    --sku Y1 \
-    --is-linux
-fi
 
 # Create Storage Account
 az storage account create \
@@ -37,11 +25,11 @@ az storage account create \
   --location "$LOCATION" \
   --sku Standard_LRS
 
-# Create Function App on Linux Consumption plan
+# Create Function App on Linux Consumption plan (Azure auto-provisions the plan)
 az functionapp create \
   --name "$FUNCTION_NAME" \
   --resource-group "$RG_NAME" \
-  --plan "$PLAN_NAME" \
+  --consumption-plan-location "$LOCATION" \
   --storage-account "$STORAGE_NAME" \
   --runtime python \
   --runtime-version 3.9 \
