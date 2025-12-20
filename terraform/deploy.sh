@@ -4,7 +4,7 @@
 # Mirrors the Terraform configuration
 
 # Variables (override with env vars if needed)
-: "${LOCATION:=eastus}"
+: "${LOCATION:=centralus}"
 : "${SUFFIX:=$(openssl rand -hex 4)}"
 : "${RG_NAME:=rg-greenroofing-sensors-${SUFFIX}}"
 : "${PYTHON_VERSION:=3.14}"
