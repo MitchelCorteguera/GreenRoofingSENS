@@ -7,7 +7,7 @@
 : "${LOCATION:=eastus}"
 : "${SUFFIX:=$(openssl rand -hex 4)}"
 : "${RG_NAME:=rg-greenroofing-sensors-${SUFFIX}}"
-: "${PYTHON_VERSION:=3.10}"
+: "${PYTHON_VERSION:=3.11}"
 : "${STORAGE_NAME:=stgreenroofing${SUFFIX}}"
 : "${COSMOS_NAME:=cosmos-greenroofing-${SUFFIX}}"
 : "${FUNCTION_NAME:=func-greenroofing-${SUFFIX}}"
