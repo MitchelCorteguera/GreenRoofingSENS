@@ -29,8 +29,7 @@ az functionapp plan create \
   --name $PLAN_NAME \
   --resource-group $RG_NAME \
   --location $LOCATION \
-  --sku Y1 \
-  --is-linux
+  --sku Dynamic
 
 # Create Cosmos DB Account
 az cosmosdb create \
