@@ -24,12 +24,15 @@ az storage account create \
   --location $LOCATION \
   --sku Standard_LRS
 
-# Create App Service Plan (Consumption)
-az functionapp plan create \
-  --name $PLAN_NAME \
+# Create Function App (Consumption plan)
+az functionapp create \
+  --name $FUNCTION_NAME \
   --resource-group $RG_NAME \
-  --location $LOCATION \
-  --sku Dynamic
+  --consumption-plan-location $LOCATION \
+  --storage-account $STORAGE_NAME \
+  --runtime python \
+  --runtime-version 3.9 \
+  --os-type Linux
 
 # Create Cosmos DB Account
 az cosmosdb create \
