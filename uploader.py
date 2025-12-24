@@ -28,7 +28,7 @@ def upload_data_to_server(sensor_data):
             "soilMoisture1": round(sensor_data.get('soil_moisture', 0), 1),
             "soilMoisture2": round(sensor_data.get('soil_moisture_2', 0), 1),
             "soilMoisture3": round(sensor_data.get('soil_moisture_3', 0), 1),
-            "irTemperature1": round(sensor_data.get('ir_temp_c', 0), 1),
+            "irTemperature1": round(sensor_data.get('ir_object_temp_c', 0), 1),
             "irTemperature2": round(sensor_data.get('ir_object_temp_2_c', 0), 1),
             "rainfallTotal": round(sensor_data.get('rainfall_mm', 0), 2),
             "rainfallHourly": round(sensor_data.get('rainfall_hourly', 0), 2)

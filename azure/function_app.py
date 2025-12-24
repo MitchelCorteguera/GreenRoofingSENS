@@ -435,17 +435,60 @@ def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
 
         table_client = table_service.get_table_client("SensorReadings")
 
+        # Handle both old format and new format with individual sensors
+        sensors = req_body.get("sensors", {})
+
+        # Individual soil temperatures (or fallback to average)
+        soil_temp_1 = float(sensors.get("soilTemperature1", req_body.get("Soil Temperature (C)", 0)))
+        soil_temp_2 = float(sensors.get("soilTemperature2", 0))
+        soil_temp_3 = float(sensors.get("soilTemperature3", 0))
+
+        # Calculate average from available sensors
+        valid_temps = [t for t in [soil_temp_1, soil_temp_2, soil_temp_3] if t != 0]
+        soil_temp_avg = sum(valid_temps) / len(valid_temps) if valid_temps else soil_temp_1
+
+        # Individual soil moisture sensors
+        soil_moisture_1 = float(sensors.get("soilMoisture1", req_body.get("Soil Moisture (%)", 0)))
+        soil_moisture_2 = float(sensors.get("soilMoisture2", 0))
+        soil_moisture_3 = float(sensors.get("soilMoisture3", 0))
+
+        # Calculate average from available sensors
+        valid_moisture = [m for m in [soil_moisture_1, soil_moisture_2, soil_moisture_3] if m != 0]
+        soil_moisture_avg = sum(valid_moisture) / len(valid_moisture) if valid_moisture else soil_moisture_1
+
+        # Individual IR temperatures
+        ir_temp_1 = float(sensors.get("irTemperature1", req_body.get("IR Temperature (C)", 0)))
+        ir_temp_2 = float(sensors.get("irTemperature2", 0))
+
+        # Calculate average IR temp
+        valid_ir = [t for t in [ir_temp_1, ir_temp_2] if t != 0]
+        ir_temp_avg = sum(valid_ir) / len(valid_ir) if valid_ir else ir_temp_1
+
         entity = {
-            "PartitionKey": req_body.get("ID", "unknown_device"),
+            "PartitionKey": req_body.get("deviceId", req_body.get("ID", "unknown_device")),
             "RowKey": str(uuid.uuid4()),
             "DateTime": datetime.utcnow().isoformat(),
-            "SoilTemp_C": float(req_body.get("Soil Temperature (C)", 0)),
-            "SoilMoisture_Percent": float(req_body.get("Soil Moisture (%)", 0)),
-            "IR_Temp_C": float(req_body.get("IR Temperature (C)", 0)),
-            "Rainfall_Total_mm": float(req_body.get("Rainfall Total (mm)", 0)),
-            "Rainfall_Hourly_mm": float(req_body.get("Rainfall Hourly (mm)", 0)),
-            "DeviceID": req_body.get("ID", "unknown"),
-            "SoftwareDate": req_body.get("software_date", ""),
+            # Averages (for backwards compatibility)
+            "SoilTemp_C": round(soil_temp_avg, 1),
+            "SoilMoisture_Percent": round(soil_moisture_avg, 1),
+            "IR_Temp_C": round(ir_temp_avg, 1),
+            # Individual soil temperatures
+            "SoilTemp_1_C": round(soil_temp_1, 1),
+            "SoilTemp_2_C": round(soil_temp_2, 1),
+            "SoilTemp_3_C": round(soil_temp_3, 1),
+            # Individual soil moisture
+            "SoilMoisture_1_Percent": round(soil_moisture_1, 1),
+            "SoilMoisture_2_Percent": round(soil_moisture_2, 1),
+            "SoilMoisture_3_Percent": round(soil_moisture_3, 1),
+            # Individual IR temps
+            "IR_Temp_1_C": round(ir_temp_1, 1),
+            "IR_Temp_2_C": round(ir_temp_2, 1),
+            # Rainfall
+            "Rainfall_Total_mm": float(sensors.get("rainfallTotal", req_body.get("Rainfall Total (mm)", 0))),
+            "Rainfall_Hourly_mm": float(sensors.get("rainfallHourly", req_body.get("Rainfall Hourly (mm)", 0))),
+            # Metadata
+            "DeviceID": req_body.get("deviceId", req_body.get("ID", "unknown")),
+            "SoftwareDate": req_body.get("softwareDate", req_body.get("software_date", "")),
             "Version": req_body.get("version", "")
         }
 
@@ -507,19 +550,36 @@ def get_sensor_data(req: func.HttpRequest) -> func.HttpResponse:
         # Build response matching Pico dashboard format
         response = {
             "live": {
+                # Averages
                 "soil_temp_c": latest.get("SoilTemp_C", 0) if latest else 0,
                 "soil_temp_f": (latest.get("SoilTemp_C", 0) * 9/5 + 32) if latest else 32,
                 "soil_moisture": latest.get("SoilMoisture_Percent", 0) if latest else 0,
                 "ir_object_temp_c": latest.get("IR_Temp_C", 0) if latest else 0,
                 "ir_object_temp_f": (latest.get("IR_Temp_C", 0) * 9/5 + 32) if latest else 32,
                 "rainfall_hourly": latest.get("Rainfall_Hourly_mm", 0) if latest else 0,
-                "rainfall_total": latest.get("Rainfall_Total_mm", 0) if latest else 0
+                "rainfall_total": latest.get("Rainfall_Total_mm", 0) if latest else 0,
+                # Individual soil temperatures
+                "soil_temp_1_c": latest.get("SoilTemp_1_C", 0) if latest else 0,
+                "soil_temp_2_c": latest.get("SoilTemp_2_C", 0) if latest else 0,
+                "soil_temp_3_c": latest.get("SoilTemp_3_C", 0) if latest else 0,
+                # Individual soil moisture
+                "soil_moisture_1": latest.get("SoilMoisture_1_Percent", 0) if latest else 0,
+                "soil_moisture_2": latest.get("SoilMoisture_2_Percent", 0) if latest else 0,
+                "soil_moisture_3": latest.get("SoilMoisture_3_Percent", 0) if latest else 0,
+                # Individual IR temps
+                "ir_temp_1_c": latest.get("IR_Temp_1_C", 0) if latest else 0,
+                "ir_temp_2_c": latest.get("IR_Temp_2_C", 0) if latest else 0
             },
             "status": {
                 "rainfall_available": True,
                 "mlx90614_available": True,
+                "mlx90614_2_available": latest.get("IR_Temp_2_C", 0) != 0 if latest else False,
                 "ds18b20_available": True,
-                "soil_moisture_available": True
+                "ds18b20_2_available": latest.get("SoilTemp_2_C", 0) != 0 if latest else False,
+                "ds18b20_3_available": latest.get("SoilTemp_3_C", 0) != 0 if latest else False,
+                "soil_moisture_available": True,
+                "soil_moisture_2_available": latest.get("SoilMoisture_2_Percent", 0) != 0 if latest else False,
+                "soil_moisture_3_available": latest.get("SoilMoisture_3_Percent", 0) != 0 if latest else False
             },
             "system": {
                 "device_model": "Azure Cloud",
