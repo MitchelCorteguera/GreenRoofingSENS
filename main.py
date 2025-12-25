@@ -158,16 +158,21 @@ def main():
                     # Upload data periodically
                     if current_time - last_upload_time >= 300: # 5 minutes
                         upload_data_to_server({
-                            "soil_temp_c": soil_temp_c,
+                            "soil_temp_1_c": soil_temp_1_c,
+                            "soil_temp_2_c": soil_temp_2_c,
+                            "soil_temp_3_c": soil_temp_3_c,
                             "soil_moisture": soil_moisture,
-                            "ir_temp_c": ir_obj_c,
+                            "soil_moisture_2": soil_moisture_2,
+                            "soil_moisture_3": soil_moisture_3,
+                            "ir_object_temp_c": ir_obj_c,
+                            "ir_object_temp_2_c": ir_temp_2_c,
                             "rainfall_mm": rainfall_mm,
                             "rainfall_hourly": rainfall_hourly
                         })
                         last_upload_time = current_time
                     
                 except Exception as e:
-                    components['logger'].log('DATA', str(e), 'ERROR')
+                    components['logger'].log('DATA', str(e), 'ERROR', error=e)
 
     except KeyboardInterrupt:
         print("\nShutdown requested.")
