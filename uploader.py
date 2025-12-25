@@ -35,6 +35,15 @@ def upload_data_to_server(sensor_data):
         }
     }
 
+    if config.UPLOAD_DEBUG_MODE:
+        print("[Upload] === Sensor Data Received ===")
+        for key, value in sensor_data.items():
+            print(f"  {key}: {value}")
+        print("[Upload] === Payload Being Sent ===")
+        print(f"  deviceId: {payload['deviceId']}")
+        for key, value in payload['sensors'].items():
+            print(f"  {key}: {value}")
+
     try:
         headers = {
             'Content-Type': 'application/json',

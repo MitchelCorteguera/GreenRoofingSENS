@@ -10,8 +10,8 @@ This file provides guidance for AI assistants (Claude) working with this codebas
 
 - **Hardware:** Raspberry Pi Pico W (RP2040)
 - **Firmware:** MicroPython v1.20+
-- **Backend:** Azure Functions (Python 3.9), Cosmos DB
-- **Infrastructure:** Terraform
+- **Backend:** Azure Functions (Python 3.13), Azure Table Storage
+- **Infrastructure:** Azure CLI
 - **Frontend:** HTML5/CSS3, ApexCharts, vanilla JavaScript
 
 ## Repository Structure
@@ -31,12 +31,98 @@ This file provides guidance for AI assistants (Claude) working with this codebas
 ├── system_monitor.py    # System health metrics
 ├── uploader.py          # Azure cloud data posting
 ├── README.md            # Project documentation
-└── terraform/           # Azure infrastructure as code
-    ├── main.tf          # Terraform resources
-    ├── function_app/    # Azure Function implementation
-    ├── deploy.sh        # Bash deployment script
-    └── deploy.ps1       # PowerShell deployment script
+└── azure/               # Azure Function code
+    ├── function_app.py  # Azure Function implementation
+    ├── host.json        # Function host configuration
+    ├── requirements.txt # Python dependencies
+    └── index.html       # Cloud dashboard
 ```
+
+## Azure Configuration
+
+### Account & Subscription
+- **Subscription:** Visual Studio Enterprise Subscription
+- **Subscription ID:** 31c921e3-84cc-4c9d-bec3-603c35e6a7e7
+- **User:** mario@mariocruz.net
+
+### Function App
+- **Name:** green-roof
+- **Resource Group:** green-roof
+- **Location:** Central US
+- **SKU:** Flex Consumption
+- **Runtime:** Python 3.13
+- **Host:** `green-roof-aghegcb4daavg7d0.centralus-01.azurewebsites.net`
+
+### Endpoints
+| Method | Route | Function | Auth |
+|--------|-------|----------|------|
+| GET | `/api/sensor-data` | get_sensor_data | Anonymous |
+| POST | `/api/sensor-data` | http_trigger | Function Key |
+| OPTIONS | `/api/sensor-data` | options_sensor_data | Anonymous |
+
+### Storage
+- **Account:** greenroof
+- **Table:** SensorReadings
+- **Table URL:** `https://greenroof.table.core.windows.net/SensorReadings`
+- **Blob Container:** `app-package-green-roof-6ca898b` (deployment packages)
+- **Connection:** AzureWebJobsStorage app setting
+
+### Table Storage Schema
+| Column | Type | Description |
+|--------|------|-------------|
+| PartitionKey | string | Device ID |
+| RowKey | string | UUID |
+| DateTime | string | ISO timestamp |
+| SoilTemp_C | float | Average soil temperature |
+| SoilTemp_1_C | float | Soil temp sensor 1 |
+| SoilTemp_2_C | float | Soil temp sensor 2 |
+| SoilTemp_3_C | float | Soil temp sensor 3 |
+| SoilMoisture_Percent | float | Average soil moisture |
+| SoilMoisture_1_Percent | float | Moisture sensor 1 |
+| SoilMoisture_2_Percent | float | Moisture sensor 2 |
+| SoilMoisture_3_Percent | float | Moisture sensor 3 |
+| IR_Temp_C | float | Average IR temperature |
+| IR_Temp_1_C | float | IR sensor 1 (I2C0) |
+| IR_Temp_2_C | float | IR sensor 2 (I2C1) |
+| Rainfall_Total_mm | float | Cumulative rainfall |
+| Rainfall_Hourly_mm | float | Last hour rainfall |
+| DeviceID | string | Device identifier |
+| Version | string | Firmware version |
+| SoftwareDate | string | Firmware date |
+
+### Deployment Commands
+```bash
+# Deploy function code
+cd azure
+zip -r /tmp/function-app.zip function_app.py host.json requirements.txt
+az functionapp deployment source config-zip \
+  --resource-group green-roof \
+  --name green-roof \
+  --src /tmp/function-app.zip
+
+# Restart function app
+az functionapp restart --name green-roof --resource-group green-roof
+
+# Check function status
+az functionapp show --name green-roof --resource-group green-roof --query "properties.state"
+
+# Query table storage (last 5 readings)
+az storage entity query --table-name SensorReadings --account-name greenroof --num-results 5
+
+# Test API endpoint
+curl "https://green-roof-aghegcb4daavg7d0.centralus-01.azurewebsites.net/api/sensor-data"
+```
+
+### Azure Function Analytics Features
+The function provides advanced analytics in GET responses:
+
+- **Basic Analytics:** Min/max/avg/std for soil temp, moisture, IR temp
+- **Trend Analysis:** Hourly statistics for last 12 hours
+- **Anomaly Detection:** Z-score based detection with severity levels
+- **Predictive Watering:** Moisture depletion rate, hours until critical
+- **Heat Stress Analysis:** Leaf vs soil temperature differential
+- **Growing Degree Days (GDD):** Accumulated heat units for growth tracking
+- **Insights:** Human-readable recommendations based on sensor data
 
 ## Hardware Sensors
 
@@ -76,20 +162,14 @@ mpremote cp *.py :
 mpremote reset
 ```
 
-### Deploy Azure Infrastructure
-```bash
-cd terraform
-terraform init
-terraform plan
-terraform apply
-```
-
 ### Deploy Azure Function
 ```bash
-cd terraform
-./deploy.sh  # Linux/macOS
-# or
-./deploy.ps1  # Windows PowerShell
+cd azure
+zip -j /tmp/function-app.zip function_app.py host.json requirements.txt
+az functionapp deployment source config-zip \
+  --resource-group green-roof \
+  --name green-roof \
+  --src /tmp/function-app.zip
 ```
 
 ## Configuration (`config.py`)
@@ -138,30 +218,95 @@ print(sm.get_readings(as_dict=True))
 
 ## Azure Function Payload Format
 
+### POST Request (from Pico)
 ```json
 {
   "deviceId": "pico-001",
-  "timestamp": "2025-01-15T14:30:00Z",
+  "timestamp": 1703423400,
   "version": "3.0",
   "softwareDate": "2025-01-15",
   "sensors": {
-    "soil_temp_avg": 22.5,
-    "soil_temp_1": 22.3,
-    "soil_temp_2": 22.6,
-    "soil_temp_3": 22.6,
+    "soilTemperature1": 22.3,
+    "soilTemperature2": 22.6,
+    "soilTemperature3": 22.6,
+    "soilMoisture1": 45.2,
+    "soilMoisture2": 48.1,
+    "soilMoisture3": 43.7,
+    "irTemperature1": 24.1,
+    "irTemperature2": 23.8,
+    "rainfallTotal": 12.5,
+    "rainfallHourly": 0.5
+  }
+}
+```
+
+### GET Response (from Azure)
+```json
+{
+  "live": {
+    "soil_temp_c": 22.5,
+    "soil_temp_1_c": 22.3,
+    "soil_temp_2_c": 22.6,
+    "soil_temp_3_c": 22.6,
+    "soil_moisture": 45.7,
     "soil_moisture_1": 45.2,
     "soil_moisture_2": 48.1,
     "soil_moisture_3": 43.7,
-    "ir_temp_1": 24.1,
-    "ir_temp_2": 23.8,
-    "rainfall_cumulative": 12.5,
+    "ir_object_temp_c": 24.0,
+    "ir_temp_1_c": 24.1,
+    "ir_temp_2_c": 23.8,
+    "rainfall_total": 12.5,
     "rainfall_hourly": 0.5
-  }
+  },
+  "status": {
+    "rainfall_available": true,
+    "mlx90614_available": true,
+    "mlx90614_2_available": false,
+    "ds18b20_available": true,
+    "ds18b20_2_available": false,
+    "ds18b20_3_available": false,
+    "soil_moisture_available": true,
+    "soil_moisture_2_available": false,
+    "soil_moisture_3_available": false
+  },
+  "analytics": {
+    "soil_temp": { "avg": 23.9, "min": 23.7, "max": 24.2, "std": 0.11, "trend": "rising" },
+    "soil_moisture": { "avg": 24.5, "min": 24.2, "max": 25.1, "std": 0.19, "trend": "stable" },
+    "ir_temp": { "avg": 24.6, "min": 24.3, "max": 25.0, "std": 0.18, "trend": "rising" },
+    "rainfall": { "total": 0.0, "avg": 0.0, "max": 0.0, "rainy_readings": 0 }
+  },
+  "advanced_analytics": {
+    "predictive_watering": {
+      "current_moisture": 24.6,
+      "depletion_rate": -0.024,
+      "hours_until_critical": 72.5,
+      "watering_urgency": "low",
+      "recommendation": "Moisture levels adequate - continue monitoring"
+    },
+    "heat_stress": {
+      "current_status": "normal",
+      "current_difference": 0.5,
+      "stress_events_count": 0
+    },
+    "growing_degree_days": {
+      "base_temperature": 10.0,
+      "total_gdd": 13.9,
+      "growth_stage_estimate": { "stage": "Dormant/Early", "progress": 27 }
+    }
+  },
+  "insights": [
+    { "type": "warning", "icon": "💧", "title": "Low Soil Moisture", "message": "..." }
+  ],
+  "anomalies": [],
+  "history": { "timestamps": [...], "soil_temps": [...], "soil_moistures": [...] },
+  "readings_count": 50,
+  "last_updated": "2025-12-24T11:01:41.872766"
 }
 ```
 
 ## Troubleshooting
 
+### Pico W Issues
 | Issue | Solution |
 |-------|----------|
 | WiFi not connecting | Check credentials in config.py, verify network is 2.4GHz |
@@ -169,6 +314,16 @@ print(sm.get_readings(as_dict=True))
 | Dashboard not loading | Verify Pico IP, check for memory issues in serial output |
 | Cloud upload failing | Verify UPLOAD_URL, check Azure Function logs, test endpoint |
 | Memory errors | Reduce LOG_HISTORY_SIZE, enable WATCHDOG, check for sensor failures |
+| Sensors 2/3 showing 0 | Physical sensors not connected to GPIO pins (16,17,18 for DS18B20; 26,27,28 for moisture) |
+
+### Azure Function Issues
+| Issue | Solution |
+|-------|----------|
+| "Function host is not running" (503) | Redeploy the function zip, wait 30s for Flex Consumption cold start |
+| No data in Table Storage | Check POST endpoint, verify AzureWebJobsStorage connection string |
+| CORS errors | OPTIONS endpoint handles preflight, check Access-Control headers |
+| Analytics returning null | Need at least 3-5 readings in table for analytics to compute |
+| Flex Consumption cold start | First request after idle may take 10-30s, subsequent requests are fast |
 
 ## Important Files for Common Changes
 
@@ -176,5 +331,5 @@ print(sm.get_readings(as_dict=True))
 - **Sensor readings:** `agri_sensors.py`, `sensor_manager.py`
 - **Dashboard UI:** `web_template.py`
 - **Data storage:** `data_logger.py`
-- **Cloud integration:** `uploader.py`, `terraform/function_app/function_app.py`
+- **Cloud integration:** `uploader.py`, `azure/function_app.py`
 - **System health:** `system_monitor.py`, `memory_handler.py`
