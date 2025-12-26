@@ -412,8 +412,8 @@ def estimate_growth_stage(gdd):
         return {"stage": "Peak/Harvest", "description": "Optimal maturity", "progress": 100}
 
 
-# POST endpoint - receives data from Pico
-@app.route(route="sensor-data", methods=["POST"])
+# POST endpoint - receives data from Pico (requires function key for security)
+@app.route(route="sensor-data", methods=["POST"], auth_level=func.AuthLevel.FUNCTION)
 def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
     try:
         req_body = req.get_json()
@@ -526,6 +526,17 @@ def get_sensor_data(req: func.HttpRequest) -> func.HttpResponse:
         # Get query parameters
         device_id = req.params.get('device_id')
         limit = int(req.params.get('limit', 50))
+        hours = req.params.get('hours')  # Time range filter: 24, 168 (week), 720 (month)
+
+        # Calculate time filter if hours specified
+        time_filter = None
+        if hours:
+            try:
+                hours_int = int(hours)
+                cutoff_time = datetime.utcnow() - timedelta(hours=hours_int)
+                time_filter = cutoff_time.isoformat() + "Z"
+            except ValueError:
+                pass
 
         # Query entities, ordered by timestamp descending
         if device_id:
@@ -534,8 +545,14 @@ def get_sensor_data(req: func.HttpRequest) -> func.HttpResponse:
         else:
             entities = list(table_client.list_entities())
 
-        # Sort by DateTime descending and limit
+        # Sort by DateTime descending
         entities.sort(key=lambda x: x.get('DateTime', ''), reverse=True)
+
+        # Apply time filter if specified
+        if time_filter:
+            entities = [e for e in entities if e.get('DateTime', '') >= time_filter]
+
+        # Apply limit
         entities = entities[:limit]
 
         # Get the latest reading for live display
@@ -589,19 +606,32 @@ def get_sensor_data(req: func.HttpRequest) -> func.HttpResponse:
                 "version": latest.get("Version", "3.0") if latest else "3.0"
             },
             "history": {
-                "timestamps": [e.get("DateTime", "")[11:16] for e in reversed(entities[:24])],
-                "soil_temps": [e.get("SoilTemp_C", 0) for e in reversed(entities[:24])],
-                "soil_moistures": [e.get("SoilMoisture_Percent", 0) for e in reversed(entities[:24])],
-                "ir_temps": [e.get("IR_Temp_C", 0) for e in reversed(entities[:24])],
-                "rainfall": [e.get("Rainfall_Hourly_mm", 0) for e in reversed(entities[:24])],
-                "datetimes": [e.get("DateTime", "") for e in reversed(entities[:24])]
+                "timestamps": [e.get("DateTime", "")[11:16] for e in reversed(entities)],
+                "soil_temps": [e.get("SoilTemp_C", 0) for e in reversed(entities)],
+                "soil_temp_1": [e.get("SoilTemp_1_C", 0) for e in reversed(entities)],
+                "soil_temp_2": [e.get("SoilTemp_2_C", 0) for e in reversed(entities)],
+                "soil_temp_3": [e.get("SoilTemp_3_C", 0) for e in reversed(entities)],
+                "soil_moistures": [e.get("SoilMoisture_Percent", 0) for e in reversed(entities)],
+                "soil_moisture_1": [e.get("SoilMoisture_1_Percent", 0) for e in reversed(entities)],
+                "soil_moisture_2": [e.get("SoilMoisture_2_Percent", 0) for e in reversed(entities)],
+                "soil_moisture_3": [e.get("SoilMoisture_3_Percent", 0) for e in reversed(entities)],
+                "ir_temps": [e.get("IR_Temp_C", 0) for e in reversed(entities)],
+                "ir_temp_1": [e.get("IR_Temp_1_C", 0) for e in reversed(entities)],
+                "ir_temp_2": [e.get("IR_Temp_2_C", 0) for e in reversed(entities)],
+                "rainfall": [e.get("Rainfall_Hourly_mm", 0) for e in reversed(entities)],
+                "datetimes": [e.get("DateTime", "") for e in reversed(entities)]
             },
             "analytics": analytics,
             "anomalies": anomalies,
             "insights": insights,
             "advanced_analytics": advanced,
             "readings_count": len(entities),
-            "last_updated": latest.get("DateTime", "") if latest else ""
+            "last_updated": latest.get("DateTime", "") if latest else "",
+            "time_range": {
+                "hours": int(hours) if hours else None,
+                "from": time_filter if time_filter else None,
+                "label": f"Last {hours} hours" if hours else "All data"
+            }
         }
 
         return func.HttpResponse(

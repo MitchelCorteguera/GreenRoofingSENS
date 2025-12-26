@@ -41,6 +41,36 @@
         .footer{text-align:center;margin-top:25px;padding-top:15px;border-top:1px solid #eee;font-size:.85em;color:#888}
         .footer a{color:#4caf50}
         .cloud-badge{background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:5px 15px;border-radius:20px;font-size:0.8em;display:inline-block;margin-bottom:10px}
+        .view-toggle{display:flex;justify-content:flex-end;margin-bottom:15px}
+        .view-toggle-btn{padding:8px 16px;border:2px solid #4caf50;background:transparent;color:#4caf50;font-size:.85em;cursor:pointer;transition:all 0.3s ease;font-weight:500}
+        .view-toggle-btn:first-child{border-radius:20px 0 0 20px;border-right:none}
+        .view-toggle-btn:last-child{border-radius:0 20px 20px 0}
+        .view-toggle-btn.active{background:#4caf50;color:white}
+        .view-toggle-btn:hover:not(.active){background:rgba(76,175,80,0.1)}
+        .individual-sensors{display:flex;gap:8px;justify-content:center;margin-top:8px;font-size:.75em;color:#666}
+        .individual-sensors span{background:#f5f5f5;padding:3px 8px;border-radius:10px}
+        .sensor-detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:15px;padding-top:15px;border-top:1px dashed #ddd}
+        .sensor-detail{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#f8f9fa;border-radius:8px;font-size:.85em}
+        .sensor-detail-label{color:#666}
+        .sensor-detail-value{font-weight:600}
+        .detailed-section{display:none;margin-top:20px}
+        .detailed-section.active{display:block}
+        .detailed-card{background:linear-gradient(145deg,#ffffff,#f8f9fa);border-radius:15px;padding:20px;margin-bottom:15px;box-shadow:0 4px 15px rgba(0,0,0,.08)}
+        .detailed-card h4{margin:0 0 15px;color:#333;font-size:1rem;display:flex;align-items:center;gap:10px}
+        .detailed-card h4 .icon{font-size:1.2em}
+        .sensor-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee}
+        .sensor-row:last-child{border-bottom:none}
+        .sensor-name{color:#555;font-size:.9em}
+        .sensor-value{font-weight:600;font-size:1.1em}
+        .sensor-value.temp{color:#795548}
+        .sensor-value.moisture{color:#4caf50}
+        .sensor-value.ir{color:#ff9800}
+        .avg-badge{background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:2px 8px;border-radius:10px;font-size:.7em;margin-left:8px}
+        /* Chart controls */
+        .chart-controls{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap}
+        .chart-btn{padding:8px 16px;border:2px solid #4caf50;background:transparent;color:#4caf50;border-radius:20px;cursor:pointer;transition:all 0.3s ease;font-size:0.85em;font-weight:500}
+        .chart-btn:hover{background:rgba(76,175,80,0.1)}
+        .chart-btn.active{background:#4caf50;color:white}
         /* Tab styles */
         .tab-container{margin-bottom:25px}
         .tab-buttons{display:flex;gap:10px;flex-wrap:wrap;border-bottom:2px solid #e0e0e0;padding-bottom:0}
@@ -100,13 +130,185 @@
         .recommendation-box{background:linear-gradient(135deg,#e3f2fd,#bbdefb);padding:15px;border-radius:10px;margin-top:15px;border-left:4px solid #2196f3}
         .recommendation-box p{margin:0;color:#1565c0;font-weight:500}
         .gdd-chart{margin-top:15px}
+        /* Offline banner */
+        .offline-banner{display:none;background:linear-gradient(90deg,#ff9800,#f57c00);color:white;padding:12px 20px;text-align:center;font-weight:600;position:sticky;top:0;z-index:1000;animation:pulse 2s infinite}
+        .offline-banner.show{display:block}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.8}}
+        /* Action buttons */
+        .action-buttons{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+        .action-btn{padding:10px 20px;border:none;border-radius:25px;cursor:pointer;font-size:.9em;font-weight:500;transition:all 0.3s ease;display:flex;align-items:center;gap:8px}
+        .action-btn.export{background:linear-gradient(135deg,#4caf50,#388e3c);color:white}
+        .action-btn.export:hover{transform:translateY(-2px);box-shadow:0 4px 15px rgba(76,175,80,0.4)}
+        .action-btn.info{background:linear-gradient(135deg,#2196f3,#1976d2);color:white}
+        .action-btn.info:hover{transform:translateY(-2px);box-shadow:0 4px 15px rgba(33,150,243,0.4)}
+        /* Time range selector */
+        .time-range-container{display:flex;align-items:center;gap:15px;margin-bottom:20px;flex-wrap:wrap}
+        .time-range-label{font-size:.9em;color:#666;font-weight:500}
+        .time-range-buttons{display:flex;gap:5px;flex-wrap:wrap}
+        .time-range-btn{padding:8px 16px;border:2px solid #e0e0e0;border-radius:20px;background:white;cursor:pointer;font-size:.85em;font-weight:500;color:#666;transition:all 0.3s ease}
+        .time-range-btn:hover{border-color:#4caf50;color:#4caf50}
+        .time-range-btn.active{background:linear-gradient(135deg,#4caf50,#388e3c);color:white;border-color:#4caf50}
+        .time-range-info{font-size:.8em;color:#888;margin-left:auto}
+        /* Modal styles */
+        .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:2000;justify-content:center;align-items:center;backdrop-filter:blur(5px)}
+        .modal-overlay.show{display:flex}
+        .modal-content{background:white;border-radius:20px;padding:30px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:modalIn 0.3s ease}
+        @keyframes modalIn{from{opacity:0;transform:scale(0.9)}to{opacity:1;transform:scale(1)}}
+        .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid #e0e0e0}
+        .modal-header h2{margin:0;color:#2e7d32}
+        .modal-close{background:none;border:none;font-size:1.5em;cursor:pointer;color:#666;padding:5px 10px;border-radius:50%}
+        .modal-close:hover{background:#f0f0f0;color:#333}
+        .modal-section{margin-bottom:20px}
+        .modal-section h3{color:#333;margin:0 0 10px;font-size:1.1em}
+        .modal-section p{color:#666;margin:0;line-height:1.6}
+        .tech-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:10px}
+        .tech-item{background:#f5f5f5;padding:10px;border-radius:10px;text-align:center;font-size:.85em}
+        .tech-item strong{display:block;color:#2e7d32;margin-bottom:3px}
+        /* Weather Widget */
+        .weather-widget{background:linear-gradient(135deg,#1e3c72 0%,#2a5298 100%);border-radius:20px;padding:25px;margin-bottom:25px;color:white;box-shadow:0 10px 30px rgba(30,60,114,0.3)}
+        .weather-header{display:flex;align-items:center;gap:20px;margin-bottom:20px;flex-wrap:wrap}
+        .weather-icon{font-size:3.5em}
+        .weather-location h3{margin:0;font-size:1.4em;font-weight:600}
+        .weather-desc{font-size:.9em;opacity:.9;text-transform:capitalize}
+        .weather-temp-main{margin-left:auto;text-align:right}
+        .weather-temp-main span:first-child{font-size:3em;font-weight:700}
+        .weather-unit{font-size:1.5em;opacity:.8;vertical-align:top}
+        .weather-details{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:15px;padding:20px 0;border-top:1px solid rgba(255,255,255,.2);border-bottom:1px solid rgba(255,255,255,.2)}
+        .weather-detail-item{text-align:center}
+        .weather-detail-label{display:block;font-size:.75em;opacity:.7;margin-bottom:4px}
+        .weather-detail-value{font-size:1.1em;font-weight:600}
+        .weather-correlation{background:rgba(255,255,255,.1);border-radius:12px;padding:15px;margin-top:15px}
+        .correlation-title{font-size:.85em;opacity:.8;margin-bottom:10px;font-weight:500}
+        .correlation-items{display:flex;flex-wrap:wrap;gap:10px}
+        .correlation-item{background:rgba(255,255,255,.15);padding:8px 12px;border-radius:8px;font-size:.85em;display:flex;align-items:center;gap:8px}
+        .correlation-item.match{background:rgba(76,175,80,.3);border:1px solid rgba(76,175,80,.5)}
+        .correlation-item.diff{background:rgba(255,152,0,.3);border:1px solid rgba(255,152,0,.5)}
+        .correlation-loading{opacity:.7;font-size:.85em}
+        .weather-footer{display:flex;justify-content:space-between;margin-top:15px;font-size:.75em;opacity:.6}
+        .weather-error{background:rgba(244,67,54,.2);border:1px solid rgba(244,67,54,.5);border-radius:10px;padding:15px;text-align:center}
+        .weather-error a{color:#ffcdd2}
     </style>
 </head>
 <body>
+<!-- Offline Banner -->
+<div id="offline-banner" class="offline-banner">
+    Device Offline - No data received in the last 10 minutes. Check Pico W connection.
+</div>
+
+<!-- About Modal -->
+<div id="about-modal" class="modal-overlay" onclick="if(event.target===this)closeAboutModal()">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>About GreenRoofing Sensor Monitor</h2>
+            <button class="modal-close" onclick="closeAboutModal()">&times;</button>
+        </div>
+        <div class="modal-section">
+            <h3>Created By</h3>
+            <p style="font-size:1.1em;font-weight:600;color:#2e7d32;margin-bottom:8px">Mitchel Corteguera</p>
+            <p>School Project - Green Roof Environmental Monitoring System</p>
+            <a href="https://github.com/MitchelCorteguera/GreenRoofingSENS" target="_blank" style="display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:8px 16px;background:#24292e;color:white;text-decoration:none;border-radius:8px;font-size:.9em">
+                <svg height="20" width="20" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+                View on GitHub
+            </a>
+        </div>
+        <div class="modal-section">
+            <h3>Project Overview</h3>
+            <p>GreenRoofingSENS is a field-ready, battery/solar-friendly MicroPython firmware for tracking green-roof performance. It monitors rainfall vs. drainage, moisture at three points, and surface temperatures of pavement vs. green roof. The system logs locally, serves a real-time web dashboard, and uplinks JSON data to Azure cloud for advanced analytics.</p>
+        </div>
+        <div class="modal-section">
+            <h3>Hardware Components</h3>
+            <div class="tech-grid">
+                <div class="tech-item"><strong>Raspberry Pi Pico W</strong>Main Controller</div>
+                <div class="tech-item"><strong>DS18B20 x3</strong>Soil Temperature</div>
+                <div class="tech-item"><strong>Capacitive x3</strong>Soil Moisture</div>
+                <div class="tech-item"><strong>MLX90614 x2</strong>IR Temperature</div>
+                <div class="tech-item"><strong>DFRobot SEN0575</strong>Rainfall Sensor</div>
+            </div>
+        </div>
+        <div class="modal-section">
+            <h3>Software Stack</h3>
+            <div class="tech-grid">
+                <div class="tech-item"><strong>MicroPython</strong>Firmware</div>
+                <div class="tech-item"><strong>Azure Functions</strong>Backend API</div>
+                <div class="tech-item"><strong>Azure Table Storage</strong>Database</div>
+                <div class="tech-item"><strong>ApexCharts</strong>Visualization</div>
+            </div>
+        </div>
+        <div class="modal-section">
+            <h3>Features</h3>
+            <p>Real-time monitoring, predictive watering analysis, heat stress detection, Growing Degree Days (GDD) tracking, anomaly detection, and intelligent insights for optimal green roof management.</p>
+        </div>
+        <div class="modal-section">
+            <h3>Purpose</h3>
+            <p>This project compares green roof vs. traditional pavement surfaces by measuring rainfall retention, soil moisture levels at multiple points, and surface temperature differentials using IR sensors. Data is collected locally and uploaded to Azure for cloud-based analytics and visualization.</p>
+        </div>
+        <div class="modal-section" style="text-align:center;margin-top:25px;padding-top:15px;border-top:1px solid #eee">
+            <p style="font-size:.9em;color:#888">Version 3.0 | Created by Mitchel Corteguera | 2025</p>
+        </div>
+    </div>
+</div>
+
 <div id="main-container">
     <div style="text-align:center"><span class="cloud-badge">Azure Cloud Dashboard</span></div>
     <h1>GreenRoofing Sensor Monitor</h1>
     <p class="subtitle">Version 3.0 | Real-time soil and weather monitoring</p>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        <button class="action-btn export" onclick="exportToCSV()">Download CSV</button>
+        <button class="action-btn info" onclick="openAboutModal()">About This Project</button>
+    </div>
+
+    <!-- Weather Widget -->
+    <div id="weather-widget" class="weather-widget">
+        <div class="weather-header">
+            <span class="weather-icon" id="weather-icon">--</span>
+            <div class="weather-location">
+                <h3 id="weather-city">Loading weather...</h3>
+                <span class="weather-desc" id="weather-desc">--</span>
+            </div>
+            <div class="weather-temp-main">
+                <span id="weather-temp">--</span>
+                <span class="weather-unit">°F</span>
+            </div>
+        </div>
+        <div class="weather-details">
+            <div class="weather-detail-item">
+                <span class="weather-detail-label">Feels Like</span>
+                <span class="weather-detail-value" id="weather-feels">--°F</span>
+            </div>
+            <div class="weather-detail-item">
+                <span class="weather-detail-label">Humidity</span>
+                <span class="weather-detail-value" id="weather-humidity">--%</span>
+            </div>
+            <div class="weather-detail-item">
+                <span class="weather-detail-label">Wind</span>
+                <span class="weather-detail-value" id="weather-wind">-- mph</span>
+            </div>
+            <div class="weather-detail-item">
+                <span class="weather-detail-label">Pressure</span>
+                <span class="weather-detail-value" id="weather-pressure">-- hPa</span>
+            </div>
+            <div class="weather-detail-item">
+                <span class="weather-detail-label">Visibility</span>
+                <span class="weather-detail-value" id="weather-visibility">-- mi</span>
+            </div>
+            <div class="weather-detail-item">
+                <span class="weather-detail-label">UV Index</span>
+                <span class="weather-detail-value" id="weather-uv">--</span>
+            </div>
+        </div>
+        <div class="weather-correlation" id="weather-correlation">
+            <div class="correlation-title">Sensor vs Weather Comparison</div>
+            <div class="correlation-items" id="correlation-items">
+                <span class="correlation-loading">Waiting for sensor data...</span>
+            </div>
+        </div>
+        <div class="weather-footer">
+            <span id="weather-updated">Last updated: --</span>
+            <span class="weather-source">Data: OpenWeatherMap</span>
+        </div>
+    </div>
 
     <!-- Tab Navigation -->
     <div class="tab-container">
@@ -118,29 +320,122 @@
 
     <!-- Dashboard Tab -->
     <div id="tab-dashboard" class="tab-content active">
-        <h2>Live Sensor Readings</h2>
-        <div class="readings-grid">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+            <h2 style="margin-bottom:0">Live Sensor Readings</h2>
+            <div class="view-toggle">
+                <button class="view-toggle-btn active" onclick="toggleSensorView('average')">Averages</button>
+                <button class="view-toggle-btn" onclick="toggleSensorView('detailed')">All Sensors</button>
+            </div>
+        </div>
+
+        <!-- Average View (Default) -->
+        <div id="view-average" class="readings-grid" style="margin-top:15px">
             <div class="reading-card soil">
-                <div class="label">Soil Temperature</div>
-                <div id="soil-temp-value" class="value" style="color:#795548" data-c="--" data-f="--">--.-<span class="unit">C</span></div>
+                <div class="label">Soil Temperature<span class="avg-badge">AVG</span></div>
+                <div id="soil-temp-value" class="value" style="color:#795548" data-c="--" data-f="--">--.-<span class="unit">°C</span></div>
+                <div class="individual-sensors">
+                    <span id="soil-temp-1-mini">S1: --</span>
+                    <span id="soil-temp-2-mini">S2: --</span>
+                    <span id="soil-temp-3-mini">S3: --</span>
+                </div>
                 <div id="soil-temp-status" class="status status-ok">Loading...</div>
-                <button id="soil-temp-toggle" class="toggle-btn">Show F</button>
+                <button id="soil-temp-toggle" class="toggle-btn">Show °F</button>
             </div>
             <div class="reading-card moisture">
-                <div class="label">Soil Moisture</div>
+                <div class="label">Soil Moisture<span class="avg-badge">AVG</span></div>
                 <div id="soil-moisture-value" class="value" style="color:#4caf50">--<span class="unit">%</span></div>
+                <div class="individual-sensors">
+                    <span id="soil-moist-1-mini">S1: --</span>
+                    <span id="soil-moist-2-mini">S2: --</span>
+                    <span id="soil-moist-3-mini">S3: --</span>
+                </div>
                 <div id="soil-moisture-status" class="status status-ok">Loading...</div>
             </div>
             <div class="reading-card temp">
-                <div class="label">Leaf/Surface Temp</div>
-                <div id="ir-temp-value" class="value" style="color:#ff9800" data-c="--" data-f="--">--.-<span class="unit">C</span></div>
+                <div class="label">Leaf/Surface Temp<span class="avg-badge">AVG</span></div>
+                <div id="ir-temp-value" class="value" style="color:#ff9800" data-c="--" data-f="--">--.-<span class="unit">°C</span></div>
+                <div class="individual-sensors">
+                    <span id="ir-temp-1-mini">IR1: --</span>
+                    <span id="ir-temp-2-mini">IR2: --</span>
+                </div>
                 <div id="ir-temp-status" class="status status-ok">Loading...</div>
-                <button id="ir-temp-toggle" class="toggle-btn">Show F</button>
+                <button id="ir-temp-toggle" class="toggle-btn">Show °F</button>
             </div>
             <div class="reading-card rain">
                 <div class="label">Rainfall (1 hour)</div>
                 <div id="rainfall-value" class="value" style="color:#2196f3">--<span class="unit">mm</span></div>
                 <div id="rainfall-status" class="status status-info">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Detailed View (All Individual Sensors) -->
+        <div id="view-detailed" class="detailed-section">
+            <div class="detailed-card">
+                <h4><span class="icon">🌡️</span> Soil Temperature Sensors</h4>
+                <div class="sensor-row">
+                    <span class="sensor-name">Average (All Sensors)</span>
+                    <span class="sensor-value temp" id="detail-soil-temp-avg">--°C</span>
+                </div>
+                <div class="sensor-row">
+                    <span class="sensor-name">Sensor 1 (GPIO 16)</span>
+                    <span class="sensor-value temp" id="detail-soil-temp-1">--°C</span>
+                </div>
+                <div class="sensor-row">
+                    <span class="sensor-name">Sensor 2 (GPIO 17)</span>
+                    <span class="sensor-value temp" id="detail-soil-temp-2">--°C</span>
+                </div>
+                <div class="sensor-row">
+                    <span class="sensor-name">Sensor 3 (GPIO 18)</span>
+                    <span class="sensor-value temp" id="detail-soil-temp-3">--°C</span>
+                </div>
+            </div>
+
+            <div class="detailed-card">
+                <h4><span class="icon">💧</span> Soil Moisture Sensors</h4>
+                <div class="sensor-row">
+                    <span class="sensor-name">Average (All Sensors)</span>
+                    <span class="sensor-value moisture" id="detail-moisture-avg">--%</span>
+                </div>
+                <div class="sensor-row">
+                    <span class="sensor-name">Sensor 1 (ADC 26)</span>
+                    <span class="sensor-value moisture" id="detail-moisture-1">--%</span>
+                </div>
+                <div class="sensor-row">
+                    <span class="sensor-name">Sensor 2 (ADC 27)</span>
+                    <span class="sensor-value moisture" id="detail-moisture-2">--%</span>
+                </div>
+                <div class="sensor-row">
+                    <span class="sensor-name">Sensor 3 (ADC 28)</span>
+                    <span class="sensor-value moisture" id="detail-moisture-3">--%</span>
+                </div>
+            </div>
+
+            <div class="detailed-card">
+                <h4><span class="icon">🔥</span> IR Temperature Sensors (Leaf/Surface)</h4>
+                <div class="sensor-row">
+                    <span class="sensor-name">Average (All Sensors)</span>
+                    <span class="sensor-value ir" id="detail-ir-avg">--°C</span>
+                </div>
+                <div class="sensor-row">
+                    <span class="sensor-name">IR Sensor 1 (I2C Bus 0)</span>
+                    <span class="sensor-value ir" id="detail-ir-1">--°C</span>
+                </div>
+                <div class="sensor-row">
+                    <span class="sensor-name">IR Sensor 2 (I2C Bus 1)</span>
+                    <span class="sensor-value ir" id="detail-ir-2">--°C</span>
+                </div>
+            </div>
+
+            <div class="detailed-card">
+                <h4><span class="icon">🌧️</span> Rainfall Sensor</h4>
+                <div class="sensor-row">
+                    <span class="sensor-name">Hourly Rainfall</span>
+                    <span class="sensor-value" style="color:#2196f3" id="detail-rain-hourly">-- mm</span>
+                </div>
+                <div class="sensor-row">
+                    <span class="sensor-name">Total Rainfall</span>
+                    <span class="sensor-value" style="color:#2196f3" id="detail-rain-total">-- mm</span>
+                </div>
             </div>
         </div>
 
@@ -178,8 +473,24 @@
         </div>
 
         <h2>Real-time Charts</h2>
+        <!-- Time Range Selector -->
+        <div class="time-range-container">
+            <span class="time-range-label">Time Range:</span>
+            <div class="time-range-buttons">
+                <button class="time-range-btn" onclick="setTimeRange(6)">6 Hours</button>
+                <button class="time-range-btn active" onclick="setTimeRange(24)">24 Hours</button>
+                <button class="time-range-btn" onclick="setTimeRange(168)">Week</button>
+                <button class="time-range-btn" onclick="setTimeRange(720)">Month</button>
+                <button class="time-range-btn" onclick="setTimeRange(null)">All Data</button>
+            </div>
+            <span id="time-range-info" class="time-range-info"></span>
+        </div>
         <div class="chart-container">
             <div class="chart-title">Temperature & Moisture Trends</div>
+            <div class="chart-controls">
+                <button class="chart-btn active" id="btn-avg-soil" onclick="setChartMode('soil', 'avg')">Averages</button>
+                <button class="chart-btn" id="btn-all-soil" onclick="setChartMode('soil', 'all')">All Sensors</button>
+            </div>
             <div id="chart-soil"></div>
         </div>
         <div class="chart-container">
@@ -188,6 +499,10 @@
         </div>
         <div class="chart-container">
             <div class="chart-title">IR Temperature Monitoring</div>
+            <div class="chart-controls">
+                <button class="chart-btn active" id="btn-avg-ir" onclick="setChartMode('ir', 'avg')">Averages</button>
+                <button class="chart-btn" id="btn-all-ir" onclick="setChartMode('ir', 'all')">All Sensors</button>
+            </div>
             <div id="chart-ir"></div>
         </div>
 
@@ -313,7 +628,253 @@
 </div>
 
 <script>
-const API_BASE = 'https://green-roof-aghegcb4daavg7d0.centralus-01.azurewebsites.net';
+const API_BASE = 'https://green-roof.azurewebsites.net';
+const WEATHER_API_KEY = 'YOUR_OPENWEATHERMAP_API_KEY'; // Replace with your API key
+const WEATHER_ZIP = '02115';
+const WEATHER_COUNTRY = 'US';
+let lastDataTimestamp = null;
+let cachedApiData = null;
+let cachedWeatherData = null;
+let currentTimeRange = 24; // Default to 24 hours
+
+// Time range selector
+function setTimeRange(hours) {
+    currentTimeRange = hours;
+
+    // Update button states
+    document.querySelectorAll('.time-range-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+
+    // Update info text
+    const infoEl = document.getElementById('time-range-info');
+    if (hours === null) {
+        infoEl.textContent = 'Showing all available data';
+    } else if (hours === 168) {
+        infoEl.textContent = 'Showing last 7 days';
+    } else if (hours === 720) {
+        infoEl.textContent = 'Showing last 30 days';
+    } else {
+        infoEl.textContent = `Showing last ${hours} hours`;
+    }
+
+    // Refresh data with new time range
+    if (typeof window.updateLiveData === 'function') {
+        window.updateLiveData();
+    }
+}
+
+// Modal functions
+function openAboutModal() {
+    document.getElementById('about-modal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeAboutModal() {
+    document.getElementById('about-modal').classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+// CSV Export function
+function exportToCSV() {
+    if (!cachedApiData || !cachedApiData.history) {
+        alert('No data available to export. Please wait for data to load.');
+        return;
+    }
+
+    const history = cachedApiData.history;
+    const rows = [['Timestamp', 'Soil Temp (C)', 'Soil Temp 1', 'Soil Temp 2', 'Soil Temp 3', 'Soil Moisture (%)', 'Moisture 1', 'Moisture 2', 'Moisture 3', 'IR Temp (C)', 'IR Temp 1', 'IR Temp 2', 'Rainfall (mm)']];
+
+    for (let i = 0; i < history.datetimes.length; i++) {
+        rows.push([
+            history.datetimes[i],
+            history.soil_temps[i] || '',
+            history.soil_temp_1 ? history.soil_temp_1[i] || '' : '',
+            history.soil_temp_2 ? history.soil_temp_2[i] || '' : '',
+            history.soil_temp_3 ? history.soil_temp_3[i] || '' : '',
+            history.soil_moistures[i] || '',
+            history.soil_moisture_1 ? history.soil_moisture_1[i] || '' : '',
+            history.soil_moisture_2 ? history.soil_moisture_2[i] || '' : '',
+            history.soil_moisture_3 ? history.soil_moisture_3[i] || '' : '',
+            history.ir_temps[i] || '',
+            history.ir_temp_1 ? history.ir_temp_1[i] || '' : '',
+            history.ir_temp_2 ? history.ir_temp_2[i] || '' : '',
+            history.rainfall[i] || ''
+        ]);
+    }
+
+    const csvContent = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'greenroof_sensor_data_' + new Date().toISOString().slice(0, 10) + '.csv';
+    link.click();
+}
+
+// Offline detection
+function checkOfflineStatus() {
+    const banner = document.getElementById('offline-banner');
+    if (!lastDataTimestamp) {
+        banner.classList.remove('show');
+        return;
+    }
+
+    const now = new Date();
+    const lastUpdate = new Date(lastDataTimestamp);
+    const diffMinutes = (now - lastUpdate) / (1000 * 60);
+
+    if (diffMinutes > 10) {
+        banner.classList.add('show');
+    } else {
+        banner.classList.remove('show');
+    }
+}
+
+// Run offline check every minute
+setInterval(checkOfflineStatus, 60000);
+
+// Weather icon mapping
+function getWeatherEmoji(iconCode) {
+    const iconMap = {
+        '01d': '\u2600\uFE0F', '01n': '\uD83C\uDF19',
+        '02d': '\u26C5', '02n': '\uD83C\uDF19',
+        '03d': '\u2601\uFE0F', '03n': '\u2601\uFE0F',
+        '04d': '\u2601\uFE0F', '04n': '\u2601\uFE0F',
+        '09d': '\uD83C\uDF27\uFE0F', '09n': '\uD83C\uDF27\uFE0F',
+        '10d': '\uD83C\uDF26\uFE0F', '10n': '\uD83C\uDF27\uFE0F',
+        '11d': '\u26C8\uFE0F', '11n': '\u26C8\uFE0F',
+        '13d': '\u2744\uFE0F', '13n': '\u2744\uFE0F',
+        '50d': '\uD83C\uDF2B\uFE0F', '50n': '\uD83C\uDF2B\uFE0F'
+    };
+    return iconMap[iconCode] || '\uD83C\uDF24\uFE0F';
+}
+
+// Fetch weather data from OpenWeatherMap
+function fetchWeatherData() {
+    if (WEATHER_API_KEY === 'YOUR_OPENWEATHERMAP_API_KEY') {
+        document.getElementById('weather-widget').innerHTML = `
+            <div class="weather-error">
+                <p><strong>Weather API Key Required</strong></p>
+                <p>To enable weather data, replace <code>YOUR_OPENWEATHERMAP_API_KEY</code> in the code with your OpenWeatherMap API key.</p>
+                <p><a href="https://openweathermap.org/api" target="_blank">Get a free API key here</a></p>
+            </div>
+        `;
+        return;
+    }
+
+    const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?zip=${WEATHER_ZIP},${WEATHER_COUNTRY}&appid=${WEATHER_API_KEY}&units=imperial`;
+
+    fetch(weatherUrl)
+        .then(response => {
+            if (!response.ok) throw new Error('Weather API error: ' + response.status);
+            return response.json();
+        })
+        .then(data => {
+            cachedWeatherData = data;
+            updateWeatherDisplay(data);
+            updateWeatherCorrelation();
+        })
+        .catch(err => {
+            console.error('Weather fetch error:', err);
+            document.getElementById('weather-city').innerText = 'Weather unavailable';
+            document.getElementById('weather-desc').innerText = err.message;
+        });
+}
+
+// Update weather display with fetched data
+function updateWeatherDisplay(data) {
+    document.getElementById('weather-icon').innerText = getWeatherEmoji(data.weather[0].icon);
+    document.getElementById('weather-city').innerText = data.name + ', ' + WEATHER_ZIP;
+    document.getElementById('weather-desc').innerText = data.weather[0].description;
+    document.getElementById('weather-temp').innerText = Math.round(data.main.temp);
+    document.getElementById('weather-feels').innerText = Math.round(data.main.feels_like) + '°F';
+    document.getElementById('weather-humidity').innerText = data.main.humidity + '%';
+    document.getElementById('weather-wind').innerText = Math.round(data.wind.speed) + ' mph';
+    document.getElementById('weather-pressure').innerText = data.main.pressure + ' hPa';
+    document.getElementById('weather-visibility').innerText = data.visibility ? (data.visibility / 1609).toFixed(1) + ' mi' : '--';
+    document.getElementById('weather-uv').innerText = '--'; // UV requires separate API call
+    document.getElementById('weather-updated').innerText = 'Updated: ' + new Date().toLocaleTimeString();
+}
+
+// Update correlation between weather and sensor data
+function updateWeatherCorrelation() {
+    if (!cachedWeatherData || !cachedApiData) return;
+
+    const weather = cachedWeatherData;
+    const sensors = cachedApiData.live;
+    const correlationEl = document.getElementById('correlation-items');
+
+    // Convert weather temp to Celsius for comparison
+    const weatherTempC = (weather.main.temp - 32) * 5/9;
+    const weatherHumidity = weather.main.humidity;
+
+    let correlations = [];
+
+    // Compare IR temp (leaf/surface) with ambient weather temp
+    if (sensors.ir_object_temp_c) {
+        const irTemp = sensors.ir_object_temp_c;
+        const diff = (irTemp - weatherTempC).toFixed(1);
+        const diffClass = Math.abs(diff) < 3 ? 'match' : 'diff';
+        correlations.push({
+            label: 'Surface vs Air',
+            value: (diff >= 0 ? '+' : '') + diff + '°C',
+            class: diffClass,
+            detail: irTemp.toFixed(1) + '°C vs ' + weatherTempC.toFixed(1) + '°C'
+        });
+    }
+
+    // Compare soil temp with weather temp
+    if (sensors.soil_temp_c) {
+        const soilTemp = sensors.soil_temp_c;
+        const diff = (soilTemp - weatherTempC).toFixed(1);
+        const diffClass = Math.abs(diff) < 5 ? 'match' : 'diff';
+        correlations.push({
+            label: 'Soil vs Air',
+            value: (diff >= 0 ? '+' : '') + diff + '°C',
+            class: diffClass,
+            detail: soilTemp.toFixed(1) + '°C vs ' + weatherTempC.toFixed(1) + '°C'
+        });
+    }
+
+    // Compare soil moisture with weather humidity
+    if (sensors.soil_moisture) {
+        const soilMoisture = sensors.soil_moisture;
+        const diff = (soilMoisture - weatherHumidity).toFixed(0);
+        correlations.push({
+            label: 'Soil vs Air Humidity',
+            value: (diff >= 0 ? '+' : '') + diff + '%',
+            class: Math.abs(diff) < 20 ? 'match' : 'diff',
+            detail: soilMoisture.toFixed(0) + '% vs ' + weatherHumidity + '%'
+        });
+    }
+
+    // Rain correlation
+    if (weather.rain && weather.rain['1h']) {
+        correlations.push({
+            label: 'Recent Rain',
+            value: weather.rain['1h'].toFixed(1) + 'mm',
+            class: 'match',
+            detail: 'Weather station: ' + weather.rain['1h'] + 'mm/hr'
+        });
+    }
+
+    // Generate HTML
+    if (correlations.length > 0) {
+        correlationEl.innerHTML = correlations.map(c =>
+            `<div class="correlation-item ${c.class}" title="${c.detail}">
+                <span>${c.label}:</span>
+                <strong>${c.value}</strong>
+            </div>`
+        ).join('');
+    } else {
+        correlationEl.innerHTML = '<span class="correlation-loading">No sensor data for comparison</span>';
+    }
+}
+
+// Fetch weather on load and every 10 minutes
+fetchWeatherData();
+setInterval(fetchWeatherData, 600000);
 
 function showTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -322,10 +883,43 @@ function showTab(tabName) {
     event.target.classList.add('active');
 }
 
+function toggleSensorView(view) {
+    const avgView = document.getElementById('view-average');
+    const detailView = document.getElementById('view-detailed');
+    const btns = document.querySelectorAll('.view-toggle-btn');
+
+    btns.forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+
+    if (view === 'average') {
+        avgView.style.display = 'grid';
+        detailView.classList.remove('active');
+    } else {
+        avgView.style.display = 'none';
+        detailView.classList.add('active');
+    }
+}
+
+// Chart mode state
+let chartModes = { soil: 'avg', ir: 'avg' };
+let lastHistoryData = null;
+let chartRefs = { soilChart: null, rainChart: null, irChart: null };
+
+function setChartMode(chart, mode) {
+    chartModes[chart] = mode;
+    // Update button states
+    document.getElementById('btn-avg-' + chart).classList.toggle('active', mode === 'avg');
+    document.getElementById('btn-all-' + chart).classList.toggle('active', mode === 'all');
+    // Refresh charts with current data
+    if (lastHistoryData && chartRefs.soilChart) {
+        window.updateChartsWithData(lastHistoryData);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     let soilTempCelsius = true, irTempCelsius = true;
 
-    // Main charts
+    // Main charts - store in global refs for toggle access
     const soilChart = new ApexCharts(document.querySelector("#chart-soil"), {
         series: [],
         chart: { height: 300, type: 'line', toolbar: { show: true }, zoom: { enabled: true } },
@@ -364,6 +958,56 @@ document.addEventListener('DOMContentLoaded', function() {
         tooltip: { x: { format: 'MMM dd HH:mm' } }
     });
     irChart.render();
+
+    // Store chart references globally for toggle access
+    chartRefs.soilChart = soilChart;
+    chartRefs.rainChart = rainChart;
+    chartRefs.irChart = irChart;
+
+    // Global function to update charts based on current mode
+    window.updateChartsWithData = function(history) {
+        const datetimes = history.datetimes.map(dt => new Date(dt + 'Z').getTime());
+
+        // Soil/Moisture chart
+        let soilSeries = [];
+        if (chartModes.soil === 'all') {
+            // Show individual sensors
+            soilSeries = [
+                { name: 'Avg Temp', data: datetimes.map((t, i) => [t, history.soil_temps[i] || 0]) },
+                { name: 'Temp S1', data: datetimes.map((t, i) => [t, history.soil_temp_1 ? history.soil_temp_1[i] || 0 : 0]) },
+                { name: 'Temp S2', data: datetimes.map((t, i) => [t, history.soil_temp_2 ? history.soil_temp_2[i] || 0 : 0]) },
+                { name: 'Temp S3', data: datetimes.map((t, i) => [t, history.soil_temp_3 ? history.soil_temp_3[i] || 0 : 0]) },
+                { name: 'Moisture', data: datetimes.map((t, i) => [t, history.soil_moistures[i] || 0]) }
+            ];
+            soilChart.updateOptions({ colors: ['#795548', '#ff5722', '#e91e63', '#9c27b0', '#4caf50'] });
+        } else {
+            // Show averages only
+            soilSeries = [
+                { name: 'Soil Temp', data: datetimes.map((t, i) => [t, history.soil_temps[i] || 0]) },
+                { name: 'Moisture', data: datetimes.map((t, i) => [t, history.soil_moistures[i] || 0]) }
+            ];
+            soilChart.updateOptions({ colors: ['#795548', '#4caf50'] });
+        }
+        soilChart.updateSeries(soilSeries);
+
+        // Rainfall chart (no toggle needed)
+        rainChart.updateSeries([{ name: 'Rainfall', data: datetimes.map((t, i) => [t, history.rainfall[i] || 0]) }]);
+
+        // IR Temperature chart
+        let irSeries = [];
+        if (chartModes.ir === 'all') {
+            irSeries = [
+                { name: 'Avg IR', data: datetimes.map((t, i) => [t, history.ir_temps[i] || 0]) },
+                { name: 'IR Sensor 1', data: datetimes.map((t, i) => [t, history.ir_temp_1 ? history.ir_temp_1[i] || 0 : 0]) },
+                { name: 'IR Sensor 2', data: datetimes.map((t, i) => [t, history.ir_temp_2 ? history.ir_temp_2[i] || 0 : 0]) }
+            ];
+            irChart.updateOptions({ colors: ['#ff9800', '#f44336', '#673ab7'] });
+        } else {
+            irSeries = [{ name: 'IR Temp', data: datetimes.map((t, i) => [t, history.ir_temps[i] || 0]) }];
+            irChart.updateOptions({ colors: ['#ff9800'] });
+        }
+        irChart.updateSeries(irSeries);
+    };
 
     // Analytics charts
     const gddChart = new ApexCharts(document.querySelector("#chart-gdd"), {
@@ -423,8 +1067,25 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('ir-temp-toggle').innerText = irTempCelsius ? 'Show F' : 'Show C';
     }
 
-    function updateLiveData() {
-        fetch(API_BASE + '/api/sensor-data?limit=100').then(r => r.json()).then(d => {
+    // Expose updateLiveData globally so time range selector can call it
+    window.updateLiveData = function() {
+        // Build API URL with time range parameter
+        let apiUrl = API_BASE + '/api/sensor-data?limit=500';
+        if (currentTimeRange !== null) {
+            apiUrl += '&hours=' + currentTimeRange;
+        }
+
+        fetch(apiUrl).then(r => r.json()).then(d => {
+            // Cache data for export and offline detection
+            cachedApiData = d;
+            updateWeatherCorrelation(); // Update weather comparison with new sensor data
+            if (d.last_updated) {
+                lastDataTimestamp = d.last_updated;
+            } else if (d.history && d.history.datetimes && d.history.datetimes.length > 0) {
+                lastDataTimestamp = d.history.datetimes[d.history.datetimes.length - 1];
+            }
+            checkOfflineStatus();
+
             // Live readings
             const stEl = document.getElementById('soil-temp-value');
             stEl.setAttribute('data-c', d.live.soil_temp_c.toFixed(1));
@@ -444,19 +1105,48 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('rainfall-value').innerHTML = d.live.rainfall_hourly.toFixed(1) + '<span class="unit">mm</span>';
             document.getElementById('rainfall-status').innerText = d.live.rainfall_hourly > 0 ? 'Raining' : 'None';
 
+            // Individual sensor values - Mini display in average view
+            if (d.live.soil_temp_1_c !== undefined) {
+                document.getElementById('soil-temp-1-mini').innerText = 'S1: ' + d.live.soil_temp_1_c.toFixed(1) + '°';
+                document.getElementById('soil-temp-2-mini').innerText = 'S2: ' + d.live.soil_temp_2_c.toFixed(1) + '°';
+                document.getElementById('soil-temp-3-mini').innerText = 'S3: ' + d.live.soil_temp_3_c.toFixed(1) + '°';
+            }
+            if (d.live.soil_moisture_1 !== undefined) {
+                document.getElementById('soil-moist-1-mini').innerText = 'S1: ' + d.live.soil_moisture_1.toFixed(0) + '%';
+                document.getElementById('soil-moist-2-mini').innerText = 'S2: ' + d.live.soil_moisture_2.toFixed(0) + '%';
+                document.getElementById('soil-moist-3-mini').innerText = 'S3: ' + d.live.soil_moisture_3.toFixed(0) + '%';
+            }
+            if (d.live.ir_temp_1_c !== undefined) {
+                document.getElementById('ir-temp-1-mini').innerText = 'IR1: ' + d.live.ir_temp_1_c.toFixed(1) + '°';
+                document.getElementById('ir-temp-2-mini').innerText = 'IR2: ' + d.live.ir_temp_2_c.toFixed(1) + '°';
+            }
+
+            // Detailed view - Full sensor breakdown
+            document.getElementById('detail-soil-temp-avg').innerText = d.live.soil_temp_c.toFixed(1) + '°C';
+            document.getElementById('detail-soil-temp-1').innerText = (d.live.soil_temp_1_c || 0).toFixed(1) + '°C';
+            document.getElementById('detail-soil-temp-2').innerText = (d.live.soil_temp_2_c || 0).toFixed(1) + '°C';
+            document.getElementById('detail-soil-temp-3').innerText = (d.live.soil_temp_3_c || 0).toFixed(1) + '°C';
+
+            document.getElementById('detail-moisture-avg').innerText = d.live.soil_moisture.toFixed(1) + '%';
+            document.getElementById('detail-moisture-1').innerText = (d.live.soil_moisture_1 || 0).toFixed(1) + '%';
+            document.getElementById('detail-moisture-2').innerText = (d.live.soil_moisture_2 || 0).toFixed(1) + '%';
+            document.getElementById('detail-moisture-3').innerText = (d.live.soil_moisture_3 || 0).toFixed(1) + '%';
+
+            document.getElementById('detail-ir-avg').innerText = d.live.ir_object_temp_c.toFixed(1) + '°C';
+            document.getElementById('detail-ir-1').innerText = (d.live.ir_temp_1_c || 0).toFixed(1) + '°C';
+            document.getElementById('detail-ir-2').innerText = (d.live.ir_temp_2_c || 0).toFixed(1) + '°C';
+
+            document.getElementById('detail-rain-hourly').innerText = d.live.rainfall_hourly.toFixed(2) + ' mm';
+            document.getElementById('detail-rain-total').innerText = d.live.rainfall_total.toFixed(2) + ' mm';
+
             document.getElementById('device-id').innerText = d.system.device_id || '--';
             document.getElementById('readings-count').innerText = d.readings_count || '--';
             document.getElementById('version').innerText = d.system.version || '3.0';
 
-            // Charts
+            // Charts - store history data and update
             if (d.history && d.history.datetimes) {
-                const datetimes = d.history.datetimes.map(dt => new Date(dt + 'Z').getTime());
-                soilChart.updateSeries([
-                    { name: 'Soil Temp', data: datetimes.map((t, i) => [t, d.history.soil_temps[i] || 0]) },
-                    { name: 'Moisture', data: datetimes.map((t, i) => [t, d.history.soil_moistures[i] || 0]) }
-                ]);
-                rainChart.updateSeries([{ name: 'Rainfall', data: datetimes.map((t, i) => [t, d.history.rainfall[i] || 0]) }]);
-                irChart.updateSeries([{ name: 'IR Temp', data: datetimes.map((t, i) => [t, d.history.ir_temps[i] || 0]) }]);
+                lastHistoryData = d.history;
+                window.updateChartsWithData(d.history);
             }
 
             // Basic analytics
@@ -581,8 +1271,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    updateLiveData();
-    setInterval(updateLiveData, 30000);
+    window.updateLiveData();
+    setInterval(window.updateLiveData, 30000);
 });
 </script>
 </body>
