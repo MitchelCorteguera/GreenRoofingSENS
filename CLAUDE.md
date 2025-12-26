@@ -13,6 +13,7 @@ This file provides guidance for AI assistants (Claude) working with this codebas
 - **Backend:** Azure Functions (Python 3.13), Azure Table Storage
 - **Infrastructure:** Azure CLI
 - **Frontend:** HTML5/CSS3, ApexCharts, vanilla JavaScript
+- **External APIs:** OpenWeatherMap (weather correlation)
 
 ## Repository Structure
 
@@ -49,9 +50,9 @@ This file provides guidance for AI assistants (Claude) working with this codebas
 - **Name:** green-roof
 - **Resource Group:** green-roof
 - **Location:** Central US
-- **SKU:** Flex Consumption
-- **Runtime:** Python 3.13
-- **Host:** `green-roof-aghegcb4daavg7d0.centralus-01.azurewebsites.net`
+- **SKU:** Consumption (Linux)
+- **Runtime:** Python 3.11
+- **Host:** `green-roof.azurewebsites.net`
 
 ### Endpoints
 | Method | Route | Function | Auth |
@@ -65,6 +66,7 @@ This file provides guidance for AI assistants (Claude) working with this codebas
 - **Table:** SensorReadings
 - **Table URL:** `https://greenroof.table.core.windows.net/SensorReadings`
 - **Blob Container:** `app-package-green-roof-6ca898b` (deployment packages)
+- **Static Website:** `$web` container for index.html hosting
 - **Connection:** AzureWebJobsStorage app setting
 
 ### Table Storage Schema
@@ -94,11 +96,12 @@ This file provides guidance for AI assistants (Claude) working with this codebas
 ```bash
 # Deploy function code
 cd azure
-zip -r /tmp/function-app.zip function_app.py host.json requirements.txt
+zip -r /tmp/function-app.zip function_app.py host.json requirements.txt index.html
 az functionapp deployment source config-zip \
   --resource-group green-roof \
   --name green-roof \
-  --src /tmp/function-app.zip
+  --src /tmp/function-app.zip \
+  --build-remote true
 
 # Restart function app
 az functionapp restart --name green-roof --resource-group green-roof
@@ -110,7 +113,14 @@ az functionapp show --name green-roof --resource-group green-roof --query "prope
 az storage entity query --table-name SensorReadings --account-name greenroof --num-results 5
 
 # Test API endpoint
-curl "https://green-roof-aghegcb4daavg7d0.centralus-01.azurewebsites.net/api/sensor-data"
+curl "https://green-roof.azurewebsites.net/api/sensor-data"
+
+# Test with time range filter (hours parameter)
+curl "https://green-roof.azurewebsites.net/api/sensor-data?hours=24"
+
+# Deploy static website (index.html to blob storage)
+az storage blob upload --account-name greenroof --container-name '$web' \
+  --name index.html --file azure/index.html --overwrite --content-type "text/html"
 ```
 
 ### Azure Function Analytics Features
@@ -123,6 +133,13 @@ The function provides advanced analytics in GET responses:
 - **Heat Stress Analysis:** Leaf vs soil temperature differential
 - **Growing Degree Days (GDD):** Accumulated heat units for growth tracking
 - **Insights:** Human-readable recommendations based on sensor data
+- **Time Range Filter:** `?hours=N` parameter to filter data (6, 24, 168, 720)
+
+### GET Query Parameters
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| hours | int | Filter data to last N hours (e.g., 24, 168 for week, 720 for month) |
+| limit | int | Maximum number of readings to return (default 500) |
 
 ## Hardware Sensors
 
@@ -165,11 +182,12 @@ mpremote reset
 ### Deploy Azure Function
 ```bash
 cd azure
-zip -j /tmp/function-app.zip function_app.py host.json requirements.txt
+zip -r /tmp/function-app.zip function_app.py host.json requirements.txt index.html
 az functionapp deployment source config-zip \
   --resource-group green-roof \
   --name green-roof \
-  --src /tmp/function-app.zip
+  --src /tmp/function-app.zip \
+  --build-remote true
 ```
 
 ## Configuration (`config.py`)
@@ -319,17 +337,51 @@ print(sm.get_readings(as_dict=True))
 ### Azure Function Issues
 | Issue | Solution |
 |-------|----------|
-| "Function host is not running" (503) | Redeploy the function zip, wait 30s for Flex Consumption cold start |
+| "Function host is not running" (503) | Redeploy the function zip with `--build-remote true`, wait for cold start |
 | No data in Table Storage | Check POST endpoint, verify AzureWebJobsStorage connection string |
 | CORS errors | OPTIONS endpoint handles preflight, check Access-Control headers |
 | Analytics returning null | Need at least 3-5 readings in table for analytics to compute |
-| Flex Consumption cold start | First request after idle may take 10-30s, subsequent requests are fast |
+| Linux Consumption cold start | First request after idle may take 10-30s, subsequent requests are fast |
+| Weather widget shows error | Replace `YOUR_OPENWEATHERMAP_API_KEY` with valid API key in index.html |
+| Time range not updating charts | Check browser console for JS errors, verify `hours` param in API response |
+
+## Cloud Dashboard Features (azure/index.html)
+
+### OpenWeatherMap Integration
+The dashboard integrates with OpenWeatherMap API for weather correlation:
+
+- **Location:** Zip code 02115 (Boston area)
+- **API Key:** Set `WEATHER_API_KEY` constant in index.html (line ~558)
+- **Data Shown:** Temperature, feels like, humidity, wind, pressure, visibility
+- **Refresh Rate:** Every 10 minutes
+
+### Weather API Configuration
+```javascript
+const WEATHER_API_KEY = 'your_api_key_here'; // Get from openweathermap.org
+const WEATHER_ZIP = '02115';
+const WEATHER_COUNTRY = 'US';
+```
+
+### Sensor vs Weather Correlation
+The dashboard shows real-time comparisons:
+- **Surface vs Air:** IR sensor temp vs ambient weather temp
+- **Soil vs Air:** Soil temp vs ambient weather temp
+- **Soil vs Air Humidity:** Soil moisture vs atmospheric humidity
+- **Recent Rain:** Weather station rainfall data
+
+### Dashboard UI Features
+- **Time Range Selector:** 6 Hours, 24 Hours, Week, Month, All Data
+- **CSV Export:** Download all sensor history as CSV file
+- **Offline Indicator:** Banner shows when device hasn't reported in 10+ minutes
+- **About Modal:** Project info, creator credits, tech stack details
+- **Tabbed Interface:** Dashboard and Analytics & Intelligence tabs
+- **Chart Toggle:** Switch between average and individual sensor views
 
 ## Important Files for Common Changes
 
 - **WiFi/Network:** `config.py`, `web_server.py`
 - **Sensor readings:** `agri_sensors.py`, `sensor_manager.py`
-- **Dashboard UI:** `web_template.py`
+- **Dashboard UI:** `web_template.py` (Pico local), `azure/index.html` (cloud)
 - **Data storage:** `data_logger.py`
 - **Cloud integration:** `uploader.py`, `azure/function_app.py`
 - **System health:** `system_monitor.py`, `memory_handler.py`
