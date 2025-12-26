@@ -192,13 +192,84 @@ az functionapp deployment source config-zip \
 
 ## Configuration (`config.py`)
 
-Key settings to modify:
-- `WIFI_SSID` / `WIFI_PASSWORD` - Network credentials
-- `UPLOAD_URL` - Azure Function endpoint
-- `SENSOR_ENABLE_*` - Toggle individual sensors
-- `SOIL_MOISTURE_DRY` / `SOIL_MOISTURE_WET` - Calibration values (ADC)
-- `LOG_INTERVAL` - Data logging frequency (default 30s)
-- `UPLOAD_INTERVAL` - Cloud upload frequency (default 300s)
+### Key Settings
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `WIFI_SSID` / `WIFI_PASSWORD` | -- | Network credentials (2.4GHz only) |
+| `UPLOAD_URL` | -- | Azure Function POST endpoint with function key |
+| `VERSION` / `SOFTWARE_DATE` | 3.0 / 2025-01-01 | Firmware version info |
+| `LOG_INTERVAL` | 30 | Seconds between sensor readings |
+| `UPLOAD_INTERVAL` | 300 | Seconds between cloud uploads (5 min) |
+
+### Sensor Enable Flags
+| Flag | Default | Sensor |
+|------|---------|--------|
+| `ENABLE_RAINFALL` | True | DFRobot SEN0575 tipping bucket |
+| `ENABLE_MLX90614` | True | IR temperature (×2 on separate I2C buses) |
+| `ENABLE_DS18B20` | True | Soil temperature (×3 on separate GPIO pins) |
+| `ENABLE_SOIL_MOISTURE` | True | Capacitive moisture (×3 on ADC pins) |
+
+### I2C Bus Configuration
+| Bus | SCL Pin | SDA Pin | Devices |
+|-----|---------|---------|---------|
+| I2C0 | GPIO 1 | GPIO 0 | Rainfall (0x1D), MLX90614 #1 (0x5A) |
+| I2C1 | GPIO 3 | GPIO 2 | MLX90614 #2 (0x5A) |
+
+### Sensor Pin Assignments
+| Sensor | Pin(s) | Interface |
+|--------|--------|-----------|
+| DS18B20 #1 | GPIO 16 | OneWire |
+| DS18B20 #2 | GPIO 17 | OneWire |
+| DS18B20 #3 | GPIO 18 | OneWire |
+| Soil Moisture #1 | GPIO 26 (ADC0) | Analog |
+| Soil Moisture #2 | GPIO 27 (ADC1) | Analog |
+| Soil Moisture #3 | GPIO 28 (ADC2) | Analog |
+
+### Soil Moisture Calibration
+```python
+SOIL_MOISTURE_DRY = 65535   # ADC value in air (dry)
+SOIL_MOISTURE_WET = 20000   # ADC value in water (wet)
+```
+To calibrate: measure raw ADC value with sensor in air and in water, update these values.
+
+### Static IP (Optional)
+```python
+USE_STATIC_IP = True
+STATIC_IP = "192.168.1.97"
+SUBNET_MASK = "255.255.255.0"
+GATEWAY = "192.168.1.1"
+DNS_SERVER = "8.8.8.8"
+```
+
+### Debug Modes
+- `SENSOR_DEBUG_MODE = True` - Print sensor readings to serial console
+- `UPLOAD_DEBUG_MODE = True` - Print upload payloads and responses
+
+### Alert Thresholds
+| Category | Setting | Value | Description |
+|----------|---------|-------|-------------|
+| Soil Moisture | `SOIL_DRY` | 30% | Below = needs watering |
+| Soil Moisture | `SOIL_WET` | 70% | Above = saturated |
+| Soil Temp | `SOIL_TEMP_COLD` | 10°C | Too cold for plants |
+| Soil Temp | `SOIL_TEMP_OPTIMAL_LOW/HIGH` | 18-24°C | Optimal range |
+| Soil Temp | `SOIL_TEMP_HOT` | 30°C | Too hot |
+| Rainfall | `RAINFALL_LIGHT` | 2.5 mm/hr | Light rain |
+| Rainfall | `RAINFALL_MODERATE` | 7.5 mm/hr | Moderate rain |
+| Rainfall | `RAINFALL_HEAVY` | 15 mm/hr | Heavy rain |
+
+## Main Loop Behavior (`main.py`)
+
+The Pico runs a continuous loop with these intervals:
+- **50ms** - Check for incoming web requests (select timeout)
+- **1 second** - LED heartbeat toggle, network health check
+- **30 seconds** (LOG_INTERVAL) - Read all sensors, log to CSV
+- **5 minutes** (300s) - Upload data to Azure cloud
+
+### Automatic Recovery
+- 3 initialization attempts on startup, then hard reset
+- Socket recovery on connection errors (ECONNABORTED, EBADF)
+- Hard reset after 10 consecutive main loop errors
+- Watchdog timer optional (8 second timeout)
 
 ## Common Development Tasks
 
@@ -330,9 +401,22 @@ print(sm.get_readings(as_dict=True))
 | WiFi not connecting | Check credentials in config.py, verify network is 2.4GHz |
 | Sensor reading "None" | Check wiring, verify I2C/OneWire addresses, check enable flags |
 | Dashboard not loading | Verify Pico IP, check for memory issues in serial output |
-| Cloud upload failing | Verify UPLOAD_URL, check Azure Function logs, test endpoint |
-| Memory errors | Reduce LOG_HISTORY_SIZE, enable WATCHDOG, check for sensor failures |
+| Cloud upload failing | Verify UPLOAD_URL includes function key, check Azure Function logs |
+| Memory errors | Reduce CHART_HISTORY_POINTS, enable WATCHDOG, check for sensor failures |
 | Sensors 2/3 showing 0 | Physical sensors not connected to GPIO pins (16,17,18 for DS18B20; 26,27,28 for moisture) |
+| No I2C devices found | Check wiring (SDA/SCL), verify pull-up resistors, check I2C address |
+| Pico keeps resetting | Reduce upload frequency, check power supply, enable WATCHDOG debug |
+| Static IP not working | Verify USE_STATIC_IP = True, check gateway/subnet match your network |
+| WebREPL not connecting | Set WEBREPL_ENABLED = True, check WEBREPL_PASSWORD in config |
+
+### Device ID
+The Pico generates a unique device ID from its hardware ID on boot:
+```python
+unique_id_bytes = machine.unique_id()
+DEVICE_ID = binascii.hexlify(unique_id_bytes).decode('utf-8').upper()
+# Example: E6614103E72B5C2E
+```
+This ID is used as the PartitionKey in Azure Table Storage.
 
 ### Azure Function Issues
 | Issue | Solution |
