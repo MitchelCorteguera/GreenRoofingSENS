@@ -1,1 +1,4 @@
 terraform/.DS_Store
+
+# API keys and secrets
+azure/config.js

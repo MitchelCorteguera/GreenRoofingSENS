@@ -32,11 +32,13 @@ This file provides guidance for AI assistants (Claude) working with this codebas
 ├── system_monitor.py    # System health metrics
 ├── uploader.py          # Azure cloud data posting
 ├── README.md            # Project documentation
+├── .gitignore           # Git ignore file (includes azure/config.js)
 └── azure/               # Azure Function code
     ├── function_app.py  # Azure Function implementation
     ├── host.json        # Function host configuration
     ├── requirements.txt # Python dependencies
-    └── index.html       # Cloud dashboard
+    ├── index.html       # Cloud dashboard
+    └── config.js        # Weather API config (gitignored, must create locally)
 ```
 
 ## Azure Configuration
@@ -426,7 +428,7 @@ This ID is used as the PartitionKey in Azure Table Storage.
 | CORS errors | OPTIONS endpoint handles preflight, check Access-Control headers |
 | Analytics returning null | Need at least 3-5 readings in table for analytics to compute |
 | Linux Consumption cold start | First request after idle may take 10-30s, subsequent requests are fast |
-| Weather widget shows error | Replace `YOUR_OPENWEATHERMAP_API_KEY` with valid API key in index.html |
+| Weather widget shows error | Create `azure/config.js` with valid API key and deploy to Azure |
 | Time range not updating charts | Check browser console for JS errors, verify `hours` param in API response |
 
 ## Cloud Dashboard Features (azure/index.html)
@@ -435,15 +437,31 @@ This ID is used as the PartitionKey in Azure Table Storage.
 The dashboard integrates with OpenWeatherMap API for weather correlation:
 
 - **Location:** Zip code 02115 (Boston area)
-- **API Key:** Set `WEATHER_API_KEY` constant in index.html (line ~558)
+- **API Key:** Stored in `azure/config.js` (gitignored for security)
 - **Data Shown:** Temperature, feels like, humidity, wind, pressure, visibility
 - **Refresh Rate:** Every 10 minutes
 
 ### Weather API Configuration
+The API key is stored in a separate config file that is NOT committed to git:
+
+**File: `azure/config.js`** (must create locally, gitignored)
 ```javascript
-const WEATHER_API_KEY = 'your_api_key_here'; // Get from openweathermap.org
-const WEATHER_ZIP = '02115';
-const WEATHER_COUNTRY = 'US';
+const CONFIG = {
+    WEATHER_API_KEY: 'your_api_key_here',  // Get from openweathermap.org
+    WEATHER_ZIP: '02115',
+    WEATHER_COUNTRY: 'US'
+};
+```
+
+**Deploy config to Azure:**
+```bash
+az storage blob upload --account-name greenroof --container-name '$web' \
+  --name config.js --file azure/config.js --overwrite --content-type "application/javascript"
+```
+
+The `index.html` loads this config file and falls back to placeholder values if missing:
+```javascript
+const WEATHER_API_KEY = (typeof CONFIG !== 'undefined' && CONFIG.WEATHER_API_KEY) || 'YOUR_OPENWEATHERMAP_API_KEY';
 ```
 
 ### Sensor vs Weather Correlation
@@ -457,9 +475,27 @@ The dashboard shows real-time comparisons:
 - **Time Range Selector:** 6 Hours, 24 Hours, Week, Month, All Data
 - **CSV Export:** Download all sensor history as CSV file
 - **Offline Indicator:** Banner shows when device hasn't reported in 10+ minutes
-- **About Modal:** Project info, creator credits, tech stack details
+- **About Modal:** Project info, creator credits, tech stack details, Fairchild/NASA acknowledgment
 - **Tabbed Interface:** Dashboard and Analytics & Intelligence tabs
 - **Chart Toggle:** Switch between average and individual sensor views
+- **Weather Widget:** Located before System Status section, shows current conditions and sensor correlation
+
+### Dashboard Layout Order
+1. Action Buttons (Download CSV, About)
+2. Tab Navigation (Dashboard, Analytics & Intelligence)
+3. Live Sensor Readings
+4. Insights & Alerts
+5. Statistical Summary
+6. Real-time Charts (with time range selector)
+7. **Current Weather** (with sensor correlation)
+8. System Status
+9. Footer
+
+## Project Acknowledgments
+
+This project builds upon the pioneering open-source work from **Fairchild Tropical Botanic Garden's Growing Beyond Earth** program, developed in partnership with **NASA**. Their groundbreaking research on plant growth monitoring in controlled environments provided the foundational concepts and development approach for this sensor system.
+
+The About modal in the dashboard includes this attribution with a link to the Growing Beyond Earth program.
 
 ## Important Files for Common Changes
 

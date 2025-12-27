@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/png" href="favicon.png">
+    <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);margin:0;padding:0;min-height:100vh}
@@ -242,6 +243,16 @@
             <h3>Purpose</h3>
             <p>This project compares green roof vs. traditional pavement surfaces by measuring rainfall retention, soil moisture levels at multiple points, and surface temperature differentials using IR sensors. Data is collected locally and uploaded to Azure for cloud-based analytics and visualization.</p>
         </div>
+        <div class="modal-section">
+            <h3>Inspiration & Acknowledgments</h3>
+            <p>This project builds upon the pioneering open-source work from <strong>Fairchild Tropical Botanic Garden's Growing Beyond Earth</strong> program, developed in partnership with <strong>NASA</strong>. Their groundbreaking research on plant growth monitoring in controlled environments provided the foundational concepts and development approach for this sensor system.</p>
+            <p style="margin-top:10px">While we adapted the design for green roof applications using different sensors suited for outdoor environmental monitoring, the core principles of data collection, real-time visualization, and cloud analytics were inspired by their innovative work advancing space agriculture research here on Earth.</p>
+            <div style="display:flex;gap:15px;margin-top:15px;flex-wrap:wrap">
+                <a href="https://www.fairchildgarden.org/growing-beyond-earth" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:linear-gradient(135deg,#2e7d32,#1b5e20);color:white;text-decoration:none;border-radius:8px;font-size:.85em">
+                    <span>Learn about Growing Beyond Earth</span>
+                </a>
+            </div>
+        </div>
         <div class="modal-section" style="text-align:center;margin-top:25px;padding-top:15px;border-top:1px solid #eee">
             <p style="font-size:.9em;color:#888">Version 3.0 | Created by Mitchel Corteguera | 2025</p>
         </div>
@@ -257,57 +268,6 @@
     <div class="action-buttons">
         <button class="action-btn export" onclick="exportToCSV()">Download CSV</button>
         <button class="action-btn info" onclick="openAboutModal()">About This Project</button>
-    </div>
-
-    <!-- Weather Widget -->
-    <div id="weather-widget" class="weather-widget">
-        <div class="weather-header">
-            <span class="weather-icon" id="weather-icon">--</span>
-            <div class="weather-location">
-                <h3 id="weather-city">Loading weather...</h3>
-                <span class="weather-desc" id="weather-desc">--</span>
-            </div>
-            <div class="weather-temp-main">
-                <span id="weather-temp">--</span>
-                <span class="weather-unit">°F</span>
-            </div>
-        </div>
-        <div class="weather-details">
-            <div class="weather-detail-item">
-                <span class="weather-detail-label">Feels Like</span>
-                <span class="weather-detail-value" id="weather-feels">--°F</span>
-            </div>
-            <div class="weather-detail-item">
-                <span class="weather-detail-label">Humidity</span>
-                <span class="weather-detail-value" id="weather-humidity">--%</span>
-            </div>
-            <div class="weather-detail-item">
-                <span class="weather-detail-label">Wind</span>
-                <span class="weather-detail-value" id="weather-wind">-- mph</span>
-            </div>
-            <div class="weather-detail-item">
-                <span class="weather-detail-label">Pressure</span>
-                <span class="weather-detail-value" id="weather-pressure">-- hPa</span>
-            </div>
-            <div class="weather-detail-item">
-                <span class="weather-detail-label">Visibility</span>
-                <span class="weather-detail-value" id="weather-visibility">-- mi</span>
-            </div>
-            <div class="weather-detail-item">
-                <span class="weather-detail-label">UV Index</span>
-                <span class="weather-detail-value" id="weather-uv">--</span>
-            </div>
-        </div>
-        <div class="weather-correlation" id="weather-correlation">
-            <div class="correlation-title">Sensor vs Weather Comparison</div>
-            <div class="correlation-items" id="correlation-items">
-                <span class="correlation-loading">Waiting for sensor data...</span>
-            </div>
-        </div>
-        <div class="weather-footer">
-            <span id="weather-updated">Last updated: --</span>
-            <span class="weather-source">Data: OpenWeatherMap</span>
-        </div>
     </div>
 
     <!-- Tab Navigation -->
@@ -506,6 +466,58 @@
             <div id="chart-ir"></div>
         </div>
 
+        <!-- Weather Widget -->
+        <h2>Current Weather</h2>
+        <div id="weather-widget" class="weather-widget">
+            <div class="weather-header">
+                <span class="weather-icon" id="weather-icon">--</span>
+                <div class="weather-location">
+                    <h3 id="weather-city">Loading weather...</h3>
+                    <span class="weather-desc" id="weather-desc">--</span>
+                </div>
+                <div class="weather-temp-main">
+                    <span id="weather-temp">--</span>
+                    <span class="weather-unit">°F</span>
+                </div>
+            </div>
+            <div class="weather-details">
+                <div class="weather-detail-item">
+                    <span class="weather-detail-label">Feels Like</span>
+                    <span class="weather-detail-value" id="weather-feels">--°F</span>
+                </div>
+                <div class="weather-detail-item">
+                    <span class="weather-detail-label">Humidity</span>
+                    <span class="weather-detail-value" id="weather-humidity">--%</span>
+                </div>
+                <div class="weather-detail-item">
+                    <span class="weather-detail-label">Wind</span>
+                    <span class="weather-detail-value" id="weather-wind">-- mph</span>
+                </div>
+                <div class="weather-detail-item">
+                    <span class="weather-detail-label">Pressure</span>
+                    <span class="weather-detail-value" id="weather-pressure">-- hPa</span>
+                </div>
+                <div class="weather-detail-item">
+                    <span class="weather-detail-label">Visibility</span>
+                    <span class="weather-detail-value" id="weather-visibility">-- mi</span>
+                </div>
+                <div class="weather-detail-item">
+                    <span class="weather-detail-label">UV Index</span>
+                    <span class="weather-detail-value" id="weather-uv">--</span>
+                </div>
+            </div>
+            <div class="weather-correlation" id="weather-correlation">
+                <div class="correlation-title">Sensor vs Weather Comparison</div>
+                <div class="correlation-items" id="correlation-items">
+                    <span class="correlation-loading">Waiting for sensor data...</span>
+                </div>
+            </div>
+            <div class="weather-footer">
+                <span id="weather-updated">Last updated: --</span>
+                <span class="weather-source">Data: OpenWeatherMap</span>
+            </div>
+        </div>
+
         <h2>System Status</h2>
         <div class="system-grid">
             <div class="system-card">
@@ -629,9 +641,10 @@
 
 <script>
 const API_BASE = 'https://green-roof.azurewebsites.net';
-const WEATHER_API_KEY = 'YOUR_OPENWEATHERMAP_API_KEY'; // Replace with your API key
-const WEATHER_ZIP = '02115';
-const WEATHER_COUNTRY = 'US';
+// Weather config loaded from config.js (CONFIG object)
+const WEATHER_API_KEY = (typeof CONFIG !== 'undefined' && CONFIG.WEATHER_API_KEY) || 'YOUR_OPENWEATHERMAP_API_KEY';
+const WEATHER_ZIP = (typeof CONFIG !== 'undefined' && CONFIG.WEATHER_ZIP) || '02115';
+const WEATHER_COUNTRY = (typeof CONFIG !== 'undefined' && CONFIG.WEATHER_COUNTRY) || 'US';
 let lastDataTimestamp = null;
 let cachedApiData = null;
 let cachedWeatherData = null;

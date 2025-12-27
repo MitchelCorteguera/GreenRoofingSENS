@@ -63,6 +63,59 @@ Field-ready, battery/solar-friendly MicroPython firmware for tracking green-roof
 - Sensor placement: 3 moisture + 3 soil temp probes across the roof profile; rainfall bucket on pavement; IR sensors aimed at roof vs. green roof surface.
 - If the dashboard stops responding after many client hits, rate limiting and socket recovery in `web_server.py` will attempt to self-heal; a power cycle remains the fastest reset.
 
+## Azure Cloud Dashboard
+
+The project includes a cloud-hosted dashboard that provides advanced analytics beyond what the Pico W can compute locally.
+
+### Cloud Features
+- **Predictive Watering** - Moisture depletion rate and hours until critical threshold
+- **Heat Stress Analysis** - Leaf vs soil temperature differential monitoring
+- **Growing Degree Days (GDD)** - Accumulated heat units for plant growth tracking
+- **Anomaly Detection** - Z-score based detection with severity levels
+- **Weather Integration** - Real-time OpenWeatherMap data with sensor correlation
+- **Time Range Selection** - View data from last 6 hours to all-time
+
+### Setting Up Weather Integration
+
+The cloud dashboard integrates with OpenWeatherMap for weather correlation. To enable it:
+
+1. Get a free API key from [OpenWeatherMap](https://openweathermap.org/api)
+2. Create `azure/config.js` with your API key:
+   ```javascript
+   const CONFIG = {
+       WEATHER_API_KEY: 'your_api_key_here',
+       WEATHER_ZIP: '02115',
+       WEATHER_COUNTRY: 'US'
+   };
+   ```
+3. Deploy to Azure blob storage:
+   ```bash
+   az storage blob upload --account-name greenroof --container-name '$web' \
+     --name config.js --file azure/config.js --overwrite --content-type "application/javascript"
+   ```
+
+**Note:** `azure/config.js` is in `.gitignore` to keep your API key private.
+
+### Deploying the Dashboard
+
+```bash
+# Deploy the main dashboard
+az storage blob upload --account-name greenroof --container-name '$web' \
+  --name index.html --file azure/index.html --overwrite --content-type "text/html"
+
+# Deploy the config (with your API key)
+az storage blob upload --account-name greenroof --container-name '$web' \
+  --name config.js --file azure/config.js --overwrite --content-type "application/javascript"
+```
+
+## Acknowledgments
+
+This project builds upon the pioneering open-source work from **Fairchild Tropical Botanic Garden's Growing Beyond Earth** program, developed in partnership with **NASA**. Their groundbreaking research on plant growth monitoring in controlled environments provided the foundational concepts and development approach for this sensor system.
+
+While we adapted the design for green roof applications using different sensors suited for outdoor environmental monitoring, the core principles of data collection, real-time visualization, and cloud analytics were inspired by their innovative work advancing space agriculture research here on Earth.
+
+Learn more: [Growing Beyond Earth](https://www.fairchildgarden.org/growing-beyond-earth)
+
 ## Roadmap ideas
 - Decide and document maintenance cadence (cleaning debris from tipping bucket, seasonal recalibration).
 - Optional OTA updates and MQTT/LoRa backhaul for off-grid deployments.
