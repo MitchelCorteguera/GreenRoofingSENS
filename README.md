@@ -1,181 +1,124 @@
-# Sensor Test Scripts
+# GreenRoofingSENS
 
-Simple test scripts for debugging and verifying individual sensors on the Raspberry Pi Pico W. Use these to test each sensor independently before running the full GreenRoofingSENS firmware.
+Field-ready, battery/solar-friendly MicroPython firmware for tracking green-roof performance: rainfall vs. drainage, moisture at three points, and surface temperatures of pavement vs. green roof. It logs locally, serves a real-time web dashboard, and can uplink JSON to a cloud endpoint.
 
-**Important:** Do NOT copy this `tests/` folder to the Pico or rename it to `utils/` - the firmware has a `utils.py` module that would be shadowed.
+## What it does
+- Reads **DFRobot tipping-bucket rainfall** (SEN0575), **three capacitive soil moisture probes**, **three DS18B20 soil temperature probes**, and **two MLX90614 IR temperature** sensors.
+- Serves a lightweight dashboard with live values, history charts, CSV/JSON downloads, and status indicators at `http://<pico-ip>/`.
+- Logs to `/logs/sensor_log.txt` with auto-rotation and exposes an upload hook to `UPLOAD_URL` for remote collection.
+- Protects the RP2040 with watchdog hooks, memory/health monitoring, and Wi‑Fi reconnection/recovery.
 
-## Available Tests
+## Hardware at a glance
+- Board: Raspberry Pi Pico W (MicroPython)
+- Rainfall: DFRobot SEN0575 (I²C, addr `0x1D`)
+- IR temp: MLX90614 (two devices, default addr `0x5A`)
+- Soil temp: 3× DS18B20 (OneWire)
+- Soil moisture: 3× capacitive analog probes
 
-| Script | Sensor | Interface | Description |
-|--------|--------|-----------|-------------|
-| `test_soil_temp.py` | DS18B20 | OneWire | Soil temperature probes (3x) |
-| `test_soil_moisture.py` | Capacitive | ADC | Soil moisture sensors (3x) |
-| `test_ir_temp.py` | MLX90614 | I2C | Infrared temperature sensors (2x) |
-| `test_rainfall.py` | DFRobot SEN0575 | I2C | Tipping bucket rainfall sensor |
+### Default pin map (see `config.py`)
+| Sensor | Pins |
+| --- | --- |
+| Rainfall (I²C0) + MLX90614 #1 | SCL `GP1`, SDA `GP0`, 100 kHz |
+| MLX90614 #2 (I²C1) | SCL `GP3`, SDA `GP2`, 100 kHz |
+| DS18B20 soil temps | `GP16`, `GP17`, `GP18` |
+| Soil moisture probes | ADC `GP26`, `GP27`, `GP28` |
+| Status LED | Onboard `LED` |
 
-## How to Use
+## Repo layout
+- `main.py` – boots services, loops on logging/upload/LED heartbeat
+- `sensor_manager.py` + `agri_sensors.py` – drivers and orchestration for rain, IR, soil temp, moisture
+- `data_logger.py` – CSV log + in-memory history buffer for charts/downloads
+- `web_server.py` + `web_template.py` – Wi‑Fi setup, HTTP endpoints, interactive dashboard (ApexCharts)
+- `uploader.py` – optional JSON POST to `UPLOAD_URL`
+- `system_monitor.py` / `memory_handler.py` / `utils.py` – watchdog, health checks, rotation, helpers
+- `boot.py` – optional boot-time Wi‑Fi/time sync/WebREPL setup when run as `boot.py`
 
-### 1. Copy test file to Pico W
-```bash
-# Using mpremote
-mpremote cp tests/test_soil_temp.py :
+## Quick start (Pico W + MicroPython)
+1) Flash MicroPython to the Pico W (v1.20+ recommended).  
+2) Clone this repo locally.  
+3) Edit `config.py`:
+   - `WIFI_SSID` / `WIFI_PASSWORD` (or enable static IP)
+   - `UPLOAD_URL` if you want cloud ingest; keep `UPLOAD_DEBUG_MODE=True` for serial feedback
+   - Calibrate `SOIL_MOISTURE_DRY` / `SOIL_MOISTURE_WET` with your probes (dry in air, wet in water)
+   - Adjust `LOG_INTERVAL` (seconds) and alert thresholds as needed
+4) Copy the project files to the Pico (`boot.py` + `main.py` + modules) via Thonny or VS Code + PyMakr/mpremote.  
+5) Reboot the board. Watch the serial console for Wi‑Fi IP; open the dashboard in your browser: `http://<that-ip>/`.
 
-# Or copy all tests
-mpremote cp tests/test_*.py :
-```
+## Using the dashboard & API
+- Dashboard: `/` – live cards for temperature/moisture/rainfall, per-sensor details, memory/uptime, and charts.
+- Live data API: `/api/data` – JSON payload with latest readings, sensor availability, system stats, and recent history for charts.
+- Downloads: `/csv` (sensor log with timestamps) and `/json` (same data as JSON file).
+- Uplink: `uploader.py` posts a JSON body with IDs/version to `UPLOAD_URL` when Wi‑Fi is up (default every 5 minutes inside `main.py`).
 
-### 2. Run the test
-```bash
-mpremote run test_soil_temp.py
-```
+## Configuration notes (`config.py`)
+- Networking: retries, optional static IP, NTP host, and timezone offset.
+- Sensors: enable/disable flags per sensor family and validation ranges to guard bogus readings.
+- Thresholds: moisture (dry/wet), soil temp (cold/optimal/hot), rainfall intensity buckets, IR temp bands.
+- Logging: log directory/name, max size, rotation count, and chart history depth (`CHART_HISTORY_POINTS`).
+- Power/robustness: optional watchdog (`WATCHDOG_ENABLED`), GC intervals, and simple low-power toggles.
 
-Or use Thonny: Open the file and click Run.
+## Operating tips
+- Moisture calibration matters: set `SOIL_MOISTURE_DRY`/`SOIL_MOISTURE_WET` per probe batch for accurate % values.
+- If battery swaps are frequent, add a small solar panel + charge controller; firmware is already conservative on memory/CPU.
+- Sensor placement: 3 moisture + 3 soil temp probes across the roof profile; rainfall bucket on pavement; IR sensors aimed at roof vs. green roof surface.
+- If the dashboard stops responding after many client hits, rate limiting and socket recovery in `web_server.py` will attempt to self-heal; a power cycle remains the fastest reset.
 
-### 3. Press Ctrl+C to stop
+## Azure Cloud Dashboard
 
----
+The project includes a cloud-hosted dashboard that provides advanced analytics beyond what the Pico W can compute locally.
 
-## Test Details
+### Cloud Features
+- **Predictive Watering** - Moisture depletion rate and hours until critical threshold
+- **Heat Stress Analysis** - Leaf vs soil temperature differential monitoring
+- **Growing Degree Days (GDD)** - Accumulated heat units for plant growth tracking
+- **Anomaly Detection** - Z-score based detection with severity levels
+- **Weather Integration** - Real-time OpenWeatherMap data with sensor correlation
+- **Time Range Selection** - View data from last 6 hours to all-time
 
-### test_soil_temp.py - DS18B20 Soil Temperature
+### Setting Up Weather Integration
 
-**Pins:** GPIO 16, 17, 18 (OneWire)
+The cloud dashboard integrates with OpenWeatherMap for weather correlation. To enable it:
 
-**What it does:**
-- Scans each GPIO pin for DS18B20 sensors
-- Displays ROM addresses of found sensors
-- Reads temperature every 2 seconds in °C and °F
-- Includes retry logic for CRC errors
-
-**Wiring:**
-```
-DS18B20          Pico W
--------          ------
-VCC (red)   -->  3.3V
-GND (black) -->  GND
-Data (yellow) -> GPIO 16/17/18
-                 + 4.7k pull-up to 3.3V
-```
-
-**Troubleshooting CRC errors:**
-- Add/check 4.7k ohm pull-up resistor between Data and 3.3V
-- Use shorter wires or stronger pull-up (2.2k-3.3k)
-- Check for loose connections
-
----
-
-### test_soil_moisture.py - Capacitive Soil Moisture
-
-**Pins:** GPIO 26, 27, 28 (ADC)
-
-**What it does:**
-- Reads raw ADC values from each sensor
-- Converts to percentage using calibration values
-- Shows status: DRY (<30%), OK (30-70%), WET (>70%)
-- Updates every second
-
-**Wiring:**
-```
-Moisture Sensor   Pico W
----------------   ------
-VCC          -->  3.3V
-GND          -->  GND
-Signal       -->  GPIO 26/27/28
-```
-
-**Calibration:**
-1. Note the RAW value when sensor is in air (dry)
-2. Note the RAW value when sensor is in water (wet)
-3. Update `DRY_VALUE` and `WET_VALUE` in the script
-4. Copy calibrated values to `config.py`:
-   ```python
-   SOIL_MOISTURE_DRY = <your dry value>
-   SOIL_MOISTURE_WET = <your wet value>
+1. Get a free API key from [OpenWeatherMap](https://openweathermap.org/api)
+2. Create `azure/config.js` with your API key:
+   ```javascript
+   const CONFIG = {
+       WEATHER_API_KEY: 'your_api_key_here',
+       WEATHER_ZIP: '02115',
+       WEATHER_COUNTRY: 'US'
+   };
+   ```
+3. Deploy to Azure blob storage:
+   ```bash
+   az storage blob upload --account-name greenroof --container-name '$web' \
+     --name config.js --file azure/config.js --overwrite --content-type "application/javascript"
    ```
 
----
+**Note:** `azure/config.js` is in `.gitignore` to keep your API key private.
 
-### test_ir_temp.py - MLX90614 IR Temperature
+### Deploying the Dashboard
 
-**Pins:**
-- IR Sensor 1: I2C0 (SDA=GPIO 0, SCL=GPIO 1)
-- IR Sensor 2: I2C1 (SDA=GPIO 2, SCL=GPIO 3)
+```bash
+# Deploy the main dashboard
+az storage blob upload --account-name greenroof --container-name '$web' \
+  --name index.html --file azure/index.html --overwrite --content-type "text/html"
 
-**What it does:**
-- Scans both I2C buses for MLX90614 sensors (address 0x5A)
-- Reads ambient temperature (sensor's internal temp)
-- Reads object temperature (what the sensor is pointed at)
-- Displays in both °C and °F
-- Updates every 2 seconds with delays to prevent read errors
-
-**Wiring:**
-```
-MLX90614 #1       Pico W
------------       ------
-VCC          -->  3.3V
-GND          -->  GND
-SDA          -->  GPIO 0
-SCL          -->  GPIO 1
-
-MLX90614 #2       Pico W
------------       ------
-VCC          -->  3.3V
-GND          -->  GND
-SDA          -->  GPIO 2
-SCL          -->  GPIO 3
+# Deploy the config (with your API key)
+az storage blob upload --account-name greenroof --container-name '$web' \
+  --name config.js --file azure/config.js --overwrite --content-type "application/javascript"
 ```
 
----
+## Acknowledgments
 
-### test_rainfall.py - DFRobot SEN0575 Rainfall Sensor
+This project builds upon the pioneering open-source work from **Fairchild Tropical Botanic Garden's Growing Beyond Earth** program, developed in partnership with **NASA**. Their groundbreaking research on plant growth monitoring in controlled environments provided the foundational concepts and development approach for this sensor system.
 
-**Pins:** I2C0 (SDA=GPIO 0, SCL=GPIO 1)
+While we adapted the design for green roof applications using different sensors suited for outdoor environmental monitoring, the core principles of data collection, real-time visualization, and cloud analytics were inspired by their innovative work advancing space agriculture research here on Earth.
 
-**What it does:**
-- Scans I2C bus for sensor at address 0x1D
-- Reads product/version ID
-- Displays rainfall in last hour (mm)
-- Displays rainfall today (mm)
-- Shows raw tip count (useful for debugging)
-- Shows sensor uptime
-- Updates every 2 seconds
+Learn more: [Growing Beyond Earth](https://www.fairchildgarden.org/growing-beyond-earth)
 
-**Wiring:**
-```
-SEN0575           Pico W
--------           ------
-VCC          -->  3.3V (or 5V)
-GND          -->  GND
-SDA          -->  GPIO 0
-SCL          -->  GPIO 1
-```
+## Roadmap ideas
+- Decide and document maintenance cadence (cleaning debris from tipping bucket, seasonal recalibration).
+- Optional OTA updates and MQTT/LoRa backhaul for off-grid deployments.
 
-**Note:** The SEN0575 may require 5V power but uses 3.3V logic levels for I2C.
-
----
-
-## Pin Reference Summary
-
-| Sensor | Pin(s) | Interface |
-|--------|--------|-----------|
-| DS18B20 #1 | GPIO 16 | OneWire |
-| DS18B20 #2 | GPIO 17 | OneWire |
-| DS18B20 #3 | GPIO 18 | OneWire |
-| Soil Moisture #1 | GPIO 26 (ADC0) | Analog |
-| Soil Moisture #2 | GPIO 27 (ADC1) | Analog |
-| Soil Moisture #3 | GPIO 28 (ADC2) | Analog |
-| MLX90614 #1 | GPIO 0 (SDA), GPIO 1 (SCL) | I2C0 |
-| MLX90614 #2 | GPIO 2 (SDA), GPIO 3 (SCL) | I2C1 |
-| Rainfall SEN0575 | GPIO 0 (SDA), GPIO 1 (SCL) | I2C0 |
-
----
-
-## Common Issues
-
-| Issue | Likely Cause | Solution |
-|-------|--------------|----------|
-| "No sensor found" | Wiring issue | Check VCC, GND, data connections |
-| CRC errors (DS18B20) | Missing pull-up | Add 4.7k resistor between Data and 3.3V |
-| Read errors (I2C) | Reading too fast | Tests include delays; check wiring |
-| Wrong moisture % | Needs calibration | Measure dry/wet RAW values, update config |
-| Rainfall always 0 | Sensor not triggered | Manually tip the bucket to test |
+## License
+Open source; choose a license in this repository to formalize reuse and contributions. In the meantime, credit the project if you fork or extend it.
